@@ -9,12 +9,13 @@
 <template name="header">
 	<div id="header">
 		<h1>Yarn</h1>
-		{{loginButtons}}
+		<div id="login">{{loginButtons align="right"}}</div>
 	</div>
 </template>
 
 <template name="index">
 	{{> header}}
+	<div id="canvas"></div>
 </template>
 
 <template name="books">

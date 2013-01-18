@@ -1,12 +1,13 @@
-
-
-Template.header.events({
+Template.index.rendered = function () {
 	
-	'click input' : function () {
-		// template data, if any, is available in 'this'
-		alert(Meteor.user().profile.name);
-	}	
-});
+	var canvas = $('#canvas');
+	
+	canvas.svg();
+	
+	var svg = canvas.svg('get');
+	
+	svg.circle(40, 40, 25, {fill: 'none', stroke: 'red', strokeWidth: 3});
+};
 
 Accounts.ui.config({
 	requestPermissions: {
