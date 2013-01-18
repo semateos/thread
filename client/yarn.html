@@ -8,6 +8,7 @@
 
 <template name="header">
 	<div id="header">
+		<div id="logo"></div>
 		<h1>Yarn</h1>
 		<div id="login">{{loginButtons align="right"}}</div>
 	</div>
@@ -15,6 +16,10 @@
 
 <template name="index">
 	{{> header}}
+	{{> canvas}}
+</template>
+
+<template name="canvas">
 	<div id="canvas"></div>
 </template>
 
