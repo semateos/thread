@@ -1,5 +1,5 @@
 <head>
-	<title>yarn</title>
+	<title>thread</title>
 </head>
 
 <body>
@@ -9,22 +9,23 @@
 <template name="header">
 	<div id="header">
 		<div id="logo"></div>
-		<h1>Yarn</h1>
+		<h1>Thread</h1>
+		<ul id="tools">
+			<li id="draw_tool" class="selected">draw</li>
+			<li id="select_tool">select</li>
+		</ul>
 		<div id="login">{{loginButtons align="right"}}</div>
 	</div>
 </template>
 
 <template name="index">
 	{{> header}}
-	
 	{{> canvas}}
 </template>
 
 <template name="canvas">
-	{{#constant}}<canvas id="canvas" resize></canvas>{{/constant}}	
-</template>
-
-<template name="books">
-	{{> header}}
-	my books
+	{{#constant}}
+		<canvas id="canvas" resize></canvas>
+		<canvas id="canvas2" resize></canvas>
+	{{/constant}}	
 </template>
