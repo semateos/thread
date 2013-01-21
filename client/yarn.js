@@ -80,9 +80,10 @@ Template.canvas.rendered = function () {
 		//console.log(d);
 		
 		Paths.insert({d:d}, function(err, id){
-			projects[0].activeLayer.removeChildren();
-			projects[0].view.draw();
-			console.log(id);
+			
+			path.remove();
+
+			console.log('insert callback: ' + id);
 		});
 
 		
@@ -246,6 +247,8 @@ Template.canvas.rendered = function () {
 		//redraw whenever the data changes
 		self.drawCanvas = Meteor.subscribe("allpaths", function() {
 			
+			console.log('subscription ready');
+
 			projects[1].activate();
 
 			var path = new Path();
@@ -270,8 +273,8 @@ Template.canvas.rendered = function () {
 			var handle = paths.observe({
 
 				added: function (path_data) {
-					
-					console.log('added ' + path_data.d);
+
+					console.log('added ' + path_data._id + ' : ' + path_data.d);
 
 					projects[1].activate();
 
@@ -291,30 +294,32 @@ Template.canvas.rendered = function () {
 
 				},
 
-				changed: function(path_data){
+				changed: function(path_data, index, old_path_data){
 
-					console.log('updated ' + path_data.d);
+					if(old_path_data.d != path_data.d){
 
-					projects[1].activate();
+						console.log('updated ' + path_data._id + ' : ' + path_data.d);
 
-					var path = path_pointers[path_data._id];
+						projects[1].activate();
 
-					path.remove();
+						var path = path_pointers[path_data._id];
 
-					var d = path_data.d;
-			
-					$(p).attr('d', d);
+						path.remove();
+
+						var d = path_data.d;
 				
-					$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-						
-					path = project.importSvg($(p)[0]);
+						$(p).attr('d', d);
 					
-					path._id = path_data._id;
+						$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
+							
+						path = project.importSvg($(p)[0]);
+						
+						path._id = path_data._id;
 
-					path_pointers[path_data._id] = path;
+						path_pointers[path_data._id] = path;
 
-					projects[1].view.draw();
-
+						projects[1].view.draw();
+					}
 
 				},
 
