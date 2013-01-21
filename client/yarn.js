@@ -33,6 +33,8 @@ Template.canvas.rendered = function () {
 
 	console.log('canvas rendered');
 
+	var path_pointers = {}
+	var active_path_pointers = {}
 
 	// Create a simple drawing tool:
 	var draw_tool = new Tool();
@@ -79,9 +81,13 @@ Template.canvas.rendered = function () {
 		
 		//console.log(d);
 		
+		active_path_pointers[d] = path;
+
 		Paths.insert({d:d}, function(err, id){
 			
-			path.remove();
+			//path.remove();
+
+			//projects[0].view.draw();
 
 			console.log('insert callback: ' + id);
 		});
@@ -240,7 +246,7 @@ Template.canvas.rendered = function () {
 	}
 
 
-	var path_pointers = {}
+	
 
 	if (! self.drawCanvas) {
 	
@@ -290,7 +296,15 @@ Template.canvas.rendered = function () {
 
 					path_pointers[path_data._id] = path;
 
+					if(active_path_pointers[d]){
+
+						console.log('remove from drawing layer');
+
+						active_path_pointers[d].remove();
+					};
+
 					projects[1].view.draw();
+					projects[0].view.draw();
 
 				},
 
@@ -304,8 +318,11 @@ Template.canvas.rendered = function () {
 
 						var path = path_pointers[path_data._id];
 
-						path.remove();
+						if(path){
 
+							path.remove();	
+						}
+					
 						var d = path_data.d;
 				
 						$(p).attr('d', d);
@@ -325,7 +342,16 @@ Template.canvas.rendered = function () {
 
 				removed: function (path_data) {
 					
-					console.log('added ' + path_data.d);
+					console.log('removed ' + path_data.d);
+
+					var path = path_pointers[path_data._id];
+
+					if(path){
+						
+						path.remove();	
+					}
+
+					projects[1].view.draw();
 					
 				}
 			});
