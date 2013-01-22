@@ -36,14 +36,8 @@ Template.canvas.rendered = function () {
 	//$canvas[0].getContext('2d').scale(0.5,0.5);
 	//$canvas2[0].getContext('2d').scale(0.5,0.5);
 
-	//projects[0].view.zoom = 2;
-	//projects[1].view.zoom = 2;
-
-
-
 	self.resizeView = function(){
 
-		
 		/*
 		var w1 = $canvas.attr('width');
 		var h1 = $canvas.attr('height');
@@ -71,9 +65,14 @@ Template.canvas.rendered = function () {
 		self.resizeView();
 	}
 
-	//projects[0].activate();
-	
+	projects[1].view.onResize = function(event) {
+    	
+		self.resizeView();
+	}
 
+	
+	projects[0].activate();
+	
 	console.log('canvas rendered');
 
 	var path_pointers = {}
@@ -89,9 +88,7 @@ Template.canvas.rendered = function () {
 		
 		projects[0].activate();
 
-		var bounds = projects[0].activeLayer.bounds;
-
-		offset = new Point(bounds.x,bounds.y);
+		offset = projects[0].activeLayer.position;
 
 		event.preventDefault();
 
@@ -99,18 +96,18 @@ Template.canvas.rendered = function () {
 		 
 		path.strokeColor = 'red';
 
-		path.add(event.point.add(offset));
+		path.add(event.point.subtract(offset));
 
 		projects[0].view.draw();
 	}
 
 	draw_tool.onMouseDrag = function(event) {
 		
+		event.preventDefault();
+
 		projects[0].activate();
 
-		//event.preventDefault();
-
-		path.add(event.point.add(offset));
+		path.add(event.point.subtract(offset));
 
 		projects[0].view.draw();
 	}
@@ -134,9 +131,8 @@ Template.canvas.rendered = function () {
 		
 	}
 
-	//projects[1].activate();
+	//select tool
 
-	// Create a simple drawing tool:
 	var select_tool = new Tool();
 	var hitOptions = {
 		segments: true,
@@ -145,18 +141,16 @@ Template.canvas.rendered = function () {
 		tolerance: 5
 	};
 
-	
-
 	var segment, path;
 	var movePath = false;
 	var selected_item = false;
 	var selected_list = new Array();
-
-
 	
 	select_tool.onMouseDown = function(event) {
 			
 		event.preventDefault();
+
+		offset = projects[0].activeLayer.position;
 
 		segment = path = null;
 
@@ -183,7 +177,7 @@ Template.canvas.rendered = function () {
 							segment = hitResult.segment;
 					} else if (hitResult.type == 'stroke') {
 							var location = hitResult.location;
-							segment = path.insert(location.index + 1, event.point);
+							segment = path.insert(location.index + 1, event.point.subtract(offset));
 							path.smooth();
 					}
 				}
@@ -219,7 +213,6 @@ Template.canvas.rendered = function () {
 		}
 	}
 	
-
 	select_tool.onMouseMove = function(event) {
 		 
 		projects[1].activate();
@@ -241,11 +234,13 @@ Template.canvas.rendered = function () {
 
 	select_tool.onMouseDrag = function(event) {
 
+		projects[1].activate();
+
 		event.preventDefault();
 
 		if (segment) {
-				segment.point = event.point;
-				path.smooth();
+				segment.point = event.point.subtract(offset);
+				//path.smooth();
 		}
 
 		if (movePath)
@@ -253,40 +248,32 @@ Template.canvas.rendered = function () {
 	}
 
 
-	projects[0].activate();
+	//move tool - reposition the canvas
+
+	projects[0].activate;
 
 	var move_tool = new Tool();
 
-	var starting_point;
-	var center_point;
-
 	move_tool.onMouseDown = function(event) {
 
-		projects[0].activate();
+		console.log(projects[0].activeLayer.position);
 
-		starting_point = event.point;
+		projects[0].activate;
 
-		center_point = projects[1].view.center;
-
-		console.log(starting_point);
+		event.preventDefault();
 	}
 
 	move_tool.onMouseDrag = function(event) {
 
-		projects[0].activate();
+		projects[0].activate;
 
 		event.preventDefault();
-
-		var delta = event.point.subtract(starting_point);
-
-		console.log(delta);
-
-		var point = new Point(0,0);
 
 		projects[0].activeLayer.translate(event.delta);
 		projects[1].activeLayer.translate(event.delta);
 	}
 
+	move_tool.activate();
 
 	$('#tools li').on('click', function(event){
 
