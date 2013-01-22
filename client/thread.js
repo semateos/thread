@@ -323,8 +323,27 @@ Template.canvas.rendered = function () {
 	self.move_tool.activate();
 
 
+	self.scroll_speed = 0.4;
 
-	
+	$(window).bind('mousewheel', function(e){
+
+		e.preventDefault();
+
+		var wheel = e.originalEvent;
+
+		if(wheel && wheel.wheelDelta){
+
+			e.preventDefault();	
+
+			var delta = new Point(wheel.wheelDeltaX*self.scroll_speed,wheel.wheelDeltaY*self.scroll_speed);
+
+			projects[0].activeLayer.translate(delta);
+			projects[1].activeLayer.translate(delta);
+
+			projects[0].view.draw();
+			projects[1].view.draw();
+		}
+    });
 
 	$('body').on('keydown', function(event){ 
     	
