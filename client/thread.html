@@ -1,5 +1,5 @@
 <head>
-	<title>thread</title>
+	<title>thred</title>
 </head>
 
 <body>
@@ -9,7 +9,7 @@
 <template name="header">
 	<div id="header">
 		<div id="logo"></div>
-		<h1>Thread</h1>
+		<h1>thred</h1>
 		<ul id="tools">
 			<li id="move_tool" class="selected">explore</li>
 			<li id="draw_tool" >draw</li>
@@ -26,6 +26,9 @@
 
 <template name="canvas">
 	{{#constant}}
+		<ul id="selection_tools">
+			<li id="selection_delete">delete</li> 
+		</ul>
 		<canvas id="canvas" resize></canvas>
 		<canvas id="canvas2" resize></canvas>
 	{{/constant}}	

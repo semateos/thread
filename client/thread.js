@@ -63,7 +63,22 @@ Template.header.events({
 	}
 });
 
+Template.canvas.events({
 
+	'click #selection_delete': function(event){
+
+		event.preventDefault();
+
+		if(self.selected_item){
+
+			Paths.remove({_id:self.selected_item.__id});
+
+			self.selected_item = false;
+
+			self.update_selection_tools();
+		}
+	}
+});
 
 Template.canvas.rendered = function () {
 
@@ -190,6 +205,25 @@ Template.canvas.rendered = function () {
 	
 	self.selected_item = false;
 
+	var $selection_tools = $('#selection_tools');
+
+	self.update_selection_tools = function(){
+
+		var offset = projects[0].activeLayer.position;
+
+		if(self.selected_item && self.selected_item.selected){
+
+			$selection_tools.show();
+
+			$selection_tools.css('top', self.selected_item.bounds.y + $canvas.height()/2 + offset.y);
+
+			$selection_tools.css('left', self.selected_item.bounds.right + $canvas.width()/2 + offset.x);
+
+		}else{
+
+			$selection_tools.hide();
+		}
+	}
 
 	self.select_tool.onMouseDown = function(event) {
 			
@@ -213,6 +247,7 @@ Template.canvas.rendered = function () {
 
 					if (hitResult.type == 'segment') {
 							hitResult.segment.remove();
+							movePath = false;
 					};
 					return;
 				}
@@ -222,16 +257,23 @@ Template.canvas.rendered = function () {
 					self.selected_item = path;
 					if (hitResult.type == 'segment') {
 							segment = hitResult.segment;
+							movePath = false;
 					} else if (hitResult.type == 'stroke') {
 							var location = hitResult.location;
 							segment = path.insert(location.index + 1, event.point.subtract(offset));
-							path.smooth();
+							movePath = false;
+							//path.smooth();
 					}
 				}
 
 			}else{
 
 				if(self.selected_item){
+
+					if(self.selected_item.bounds.contains(event.point.subtract(offset))){
+
+						console.log('inside bounds');
+					}
 
 					self.savePath(selected_item);
 				}
@@ -242,6 +284,8 @@ Template.canvas.rendered = function () {
 
 				self.selected_item = hitResult.item;
 
+				movePath = self.selected_item;
+
 				self.selected_item.selected = true;
 
 				console.log(selected_item._id);
@@ -249,15 +293,40 @@ Template.canvas.rendered = function () {
 			}
 		}else{
 
+			//nothing under the cursor
+
 			if(self.selected_item){
 
-				self.savePath(selected_item);
+				if(self.selected_item.bounds.contains(event.point.subtract(offset))){
+
+					console.log('inside bounds');
+					
+					movePath = self.selected_item;
+				
+				}else{
+
+					self.savePath(selected_item);
+
+					project.activeLayer.selected = false;
+
+					self.selected_item = false;
+
+					movePath = false;
+				}
+
+			}else{
+
+				project.activeLayer.selected = false;
+
+				self.selected_item = false;
+
+				movePath = false;
 			}
 
-			project.activeLayer.selected = false;
-
-			self.selected_item = false;
+			
 		}
+
+		self.update_selection_tools();
 	}
 	
 	self.select_tool.onMouseMove = function(event) {
@@ -277,6 +346,8 @@ Template.canvas.rendered = function () {
 				hitResult.item.selected = true;
 			}
 		}
+
+		self.update_selection_tools();
 	}
 
 	self.select_tool.onMouseDrag = function(event) {
@@ -285,13 +356,24 @@ Template.canvas.rendered = function () {
 
 		event.preventDefault();
 
+		console.log('draging: ' + event.delta);
+		console.log('movePath: ' + movePath);
+
 		if (segment) {
-				segment.point = event.point.subtract(offset);
-				//path.smooth();
+
+			segment.point = event.point.subtract(offset);
+			//path.smooth();
 		}
 
-		if (movePath)
-				path.position += event.delta;
+		if (movePath){
+
+			console.log('movePath: ' + movePath.position);
+
+			movePath.position = movePath.position.add(event.delta);
+
+		}
+
+		self.update_selection_tools();
 	}
 
 
@@ -340,6 +422,8 @@ Template.canvas.rendered = function () {
 			projects[0].activeLayer.translate(delta);
 			projects[1].activeLayer.translate(delta);
 
+			self.update_selection_tools();
+
 			projects[0].view.draw();
 			projects[1].view.draw();
 		}
@@ -355,9 +439,9 @@ Template.canvas.rendered = function () {
 
 			event.preventDefault();
 
-			Paths.remove({_id:selected_item.__id});
+			Paths.remove({_id:self.selected_item.__id});
 
-			selected_item = false;
+			self.selected_item = false;
     	}
 
     	if(event.which == 187){
