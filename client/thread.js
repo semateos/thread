@@ -18,8 +18,19 @@ Template.header.rendered = function () {
 Template.header.events({
 	
 	'click #logo': function(event){
+
 		projects[1].activeLayer.removeChildren();
+
 		Paths.remove({}); 
+	},
+
+	'click h1': function(event){
+
+		projects[0].activeLayer.position = new Point(0,0);
+		projects[1].activeLayer.position = new Point(0,0);
+
+		projects[0].view.zoom = 1;
+		projects[1].view.zoom = 1;
 	}
 });
 
@@ -32,6 +43,10 @@ Template.canvas.rendered = function () {
 
 	var $canvas = $('#canvas');
 	var $canvas2 = $('#canvas2');
+
+
+	projects[0].activeLayer.position = new Point(0,0);
+	projects[1].activeLayer.position = new Point(0,0);
 
 	//$canvas[0].getContext('2d').scale(0.5,0.5);
 	//$canvas2[0].getContext('2d').scale(0.5,0.5);
@@ -274,6 +289,8 @@ Template.canvas.rendered = function () {
 	}
 
 	move_tool.activate();
+
+
 
 	$('#tools li').on('click', function(event){
 

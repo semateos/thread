@@ -50,6 +50,7 @@ body, html{
 	text-transform:lowercase;
 	margin: 0;
 	line-height: 1em;
+	cursor: pointer;
 }
 
 #login{
