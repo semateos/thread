@@ -30,16 +30,48 @@ Template.canvas.rendered = function () {
 	paper.setup('canvas');
 	paper.setup('canvas2');
 
-	projects[0].view.center = new Point(0,0);
-	projects[1].view.center = new Point(0,0);
+	var $canvas = $('#canvas');
+	var $canvas2 = $('#canvas2');
 
-	projects[0].view.onResize = function(event) {
-    	
-	    projects[0].view.center = new Point(0,0);
-		projects[1].view.center = new Point(0,0);
+	//$canvas[0].getContext('2d').scale(0.5,0.5);
+	//$canvas2[0].getContext('2d').scale(0.5,0.5);
+
+	//projects[0].view.zoom = 2;
+	//projects[1].view.zoom = 2;
+
+
+
+	self.resizeView = function(){
+
+		
+		/*
+		var w1 = $canvas.attr('width');
+		var h1 = $canvas.attr('height');
+
+		$canvas.attr('width', w1*2);
+		$canvas.attr('height', h1*2);
+
+		$canvas2.attr('width', w1*2);
+		$canvas2.attr('height', h1*2);
+		*/
+
+		var point = new Point(0,0);
+
+		projects[0].view.center = point;
+		projects[1].view.center = point;
+
+		//projects[0].view.zoom = 2;
+		//projects[1].view.zoom = 2;
 	}
 
-	projects[0].activate();
+	self.resizeView();
+	
+	projects[0].view.onResize = function(event) {
+    	
+		self.resizeView();
+	}
+
+	//projects[0].activate();
 	
 
 	console.log('canvas rendered');
@@ -50,11 +82,16 @@ Template.canvas.rendered = function () {
 	// Create a simple drawing tool:
 	var draw_tool = new Tool();
 	var path;
-	
+	var offset;
+
 	// Define a mousedown and mousedrag handler
 	draw_tool.onMouseDown = function(event) {
 		
 		projects[0].activate();
+
+		var bounds = projects[0].activeLayer.bounds;
+
+		offset = new Point(bounds.x,bounds.y);
 
 		event.preventDefault();
 
@@ -62,7 +99,7 @@ Template.canvas.rendered = function () {
 		 
 		path.strokeColor = 'red';
 
-		path.add(event.point);
+		path.add(event.point.add(offset));
 
 		projects[0].view.draw();
 	}
@@ -73,7 +110,7 @@ Template.canvas.rendered = function () {
 
 		//event.preventDefault();
 
-		path.add(event.point);
+		path.add(event.point.add(offset));
 
 		projects[0].view.draw();
 	}
@@ -97,7 +134,7 @@ Template.canvas.rendered = function () {
 		
 	}
 
-	projects[1].activate();
+	//projects[1].activate();
 
 	// Create a simple drawing tool:
 	var select_tool = new Tool();
@@ -206,15 +243,79 @@ Template.canvas.rendered = function () {
 
 		event.preventDefault();
 
-			if (segment) {
-					segment.point = event.point;
-					path.smooth();
-			}
+		if (segment) {
+				segment.point = event.point;
+				path.smooth();
+		}
 
-			if (movePath)
-					path.position += event.delta;
+		if (movePath)
+				path.position += event.delta;
 	}
 
+
+	projects[0].activate();
+
+	var move_tool = new Tool();
+
+	var starting_point;
+	var center_point;
+
+	move_tool.onMouseDown = function(event) {
+
+		projects[0].activate();
+
+		starting_point = event.point;
+
+		center_point = projects[1].view.center;
+
+		console.log(starting_point);
+	}
+
+	move_tool.onMouseDrag = function(event) {
+
+		projects[0].activate();
+
+		event.preventDefault();
+
+		var delta = event.point.subtract(starting_point);
+
+		console.log(delta);
+
+		var point = new Point(0,0);
+
+		projects[0].activeLayer.translate(event.delta);
+		projects[1].activeLayer.translate(event.delta);
+	}
+
+
+	$('#tools li').on('click', function(event){
+
+		var current_tool = $(this);
+
+		var tool_id = current_tool.attr('id');
+
+		$('#tools li').removeClass('selected');
+		
+		current_tool.addClass('selected');
+
+		project.activeLayer.selected = false;
+
+		selected_item = false;
+
+		project.view.draw();
+
+		if(tool_id == 'select_tool'){
+
+			$canvas.hide();
+
+		}else{
+
+			$canvas.show();
+			
+		}
+
+		eval(tool_id + '.activate()');
+	})
 
 	$('body').on('keydown', function(event){ 
     	
@@ -398,34 +499,7 @@ Template.canvas.rendered = function () {
 		}
 	}
 
-	$('#tools li').on('click', function(event){
-
-		var current_tool = $(this);
-
-		var tool_id = current_tool.attr('id');
-
-		$('#tools li').removeClass('selected');
-		
-		current_tool.addClass('selected');
-
-		project.activeLayer.selected = false;
-
-		selected_item = false;
-
-		project.view.draw();
-
-		if(tool_id == 'select_tool'){
-
-			$('#canvas').hide();
-
-		}else{
-
-			$('#canvas').show();
-			
-		}
-
-		eval(tool_id + '.activate()');
-	})
+	
 
 }
 

@@ -17,8 +17,8 @@ body, html{
 	font-size: 25px;
 }
 
+#canvas2,
 #canvas {
-	z-index: 20;
 	position: absolute;
 	width: 100%;
 	height: 100%;
