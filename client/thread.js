@@ -11,8 +11,6 @@ Template.header.rendered = function () {
 	var svg = canvas.svg('get');
 	
 	svg.circle(30, 30, 20, {fill: 'none', stroke: 'red', strokeWidth: 1});
-
-
 };
 
 Template.header.events({
@@ -31,6 +29,37 @@ Template.header.events({
 
 		projects[0].view.zoom = 1;
 		projects[1].view.zoom = 1;
+	},
+
+	'click #tools li': function(event){
+
+		var current_tool = $(event.currentTarget);
+
+		var tool_id = current_tool.attr('id');
+
+		$('#tools li').removeClass('selected');
+		
+		current_tool.addClass('selected');
+
+		project.activeLayer.selected = false;
+
+		self.selected_item = false;
+
+		var $canvas = $('#canvas');
+
+		project.view.draw();
+
+		if(tool_id == 'select_tool'){
+
+			$canvas.hide();
+
+		}else{
+
+			$canvas.show();
+			
+		}
+
+		eval('self.' + tool_id + '.activate()');
 	}
 });
 
@@ -94,12 +123,12 @@ Template.canvas.rendered = function () {
 	var active_path_pointers = {}
 
 	// Create a simple drawing tool:
-	var draw_tool = new Tool();
+	self.draw_tool = new Tool();
 	var path;
 	var offset;
 
 	// Define a mousedown and mousedrag handler
-	draw_tool.onMouseDown = function(event) {
+	self.draw_tool.onMouseDown = function(event) {
 		
 		projects[0].activate();
 
@@ -116,7 +145,7 @@ Template.canvas.rendered = function () {
 		projects[0].view.draw();
 	}
 
-	draw_tool.onMouseDrag = function(event) {
+	self.draw_tool.onMouseDrag = function(event) {
 		
 		event.preventDefault();
 
@@ -127,7 +156,7 @@ Template.canvas.rendered = function () {
 		projects[0].view.draw();
 	}
 
-	draw_tool.onMouseUp = function(event) {
+	self.draw_tool.onMouseUp = function(event) {
 		
 		projects[0].activate();
 
@@ -148,7 +177,7 @@ Template.canvas.rendered = function () {
 
 	//select tool
 
-	var select_tool = new Tool();
+	self.select_tool = new Tool();
 	var hitOptions = {
 		segments: true,
 		stroke: true,
@@ -158,12 +187,15 @@ Template.canvas.rendered = function () {
 
 	var segment, path;
 	var movePath = false;
-	var selected_item = false;
-	var selected_list = new Array();
 	
-	select_tool.onMouseDown = function(event) {
+	self.selected_item = false;
+
+
+	self.select_tool.onMouseDown = function(event) {
 			
 		event.preventDefault();
+
+		var selected_item = self.selected_item;
 
 		offset = projects[0].activeLayer.position;
 
@@ -173,7 +205,7 @@ Template.canvas.rendered = function () {
 
 		if (hitResult && hitResult.item){
 
-			if(selected_item == hitResult.item){
+			if(self.selected_item == hitResult.item){
 
 				console.log('same_item');
 
@@ -187,7 +219,7 @@ Template.canvas.rendered = function () {
 
 				if (hitResult) {
 					path = hitResult.item;
-					selected_item = path;
+					self.selected_item = path;
 					if (hitResult.type == 'segment') {
 							segment = hitResult.segment;
 					} else if (hitResult.type == 'stroke') {
@@ -199,7 +231,7 @@ Template.canvas.rendered = function () {
 
 			}else{
 
-				if(selected_item){
+				if(self.selected_item){
 
 					self.savePath(selected_item);
 				}
@@ -208,37 +240,37 @@ Template.canvas.rendered = function () {
 
 				project.activeLayer.selected = false;
 
-				selected_item = hitResult.item;
+				self.selected_item = hitResult.item;
 
-				selected_item.selected = true;
+				self.selected_item.selected = true;
 
 				console.log(selected_item._id);
 
 			}
 		}else{
 
-			if(selected_item){
+			if(self.selected_item){
 
 				self.savePath(selected_item);
 			}
 
 			project.activeLayer.selected = false;
 
-			selected_item = false;
+			self.selected_item = false;
 		}
 	}
 	
-	select_tool.onMouseMove = function(event) {
+	self.select_tool.onMouseMove = function(event) {
 		 
 		projects[1].activate();
 
-		if(!selected_item){
+		if(!self.selected_item){
 
 			var hitResult = project.hitTest(event.point, hitOptions);
 			
 			project.activeLayer.selected = false;
 			
-			selected_item = false;
+			self.selected_item = false;
 
 			if (hitResult && hitResult.item){
 				 	
@@ -247,7 +279,7 @@ Template.canvas.rendered = function () {
 		}
 	}
 
-	select_tool.onMouseDrag = function(event) {
+	self.select_tool.onMouseDrag = function(event) {
 
 		projects[1].activate();
 
@@ -267,9 +299,9 @@ Template.canvas.rendered = function () {
 
 	projects[0].activate;
 
-	var move_tool = new Tool();
+	self.move_tool = new Tool();
 
-	move_tool.onMouseDown = function(event) {
+	self.move_tool.onMouseDown = function(event) {
 
 		console.log(projects[0].activeLayer.position);
 
@@ -278,7 +310,7 @@ Template.canvas.rendered = function () {
 		event.preventDefault();
 	}
 
-	move_tool.onMouseDrag = function(event) {
+	self.move_tool.onMouseDrag = function(event) {
 
 		projects[0].activate;
 
@@ -288,38 +320,11 @@ Template.canvas.rendered = function () {
 		projects[1].activeLayer.translate(event.delta);
 	}
 
-	move_tool.activate();
+	self.move_tool.activate();
 
 
 
-	$('#tools li').on('click', function(event){
-
-		var current_tool = $(this);
-
-		var tool_id = current_tool.attr('id');
-
-		$('#tools li').removeClass('selected');
-		
-		current_tool.addClass('selected');
-
-		project.activeLayer.selected = false;
-
-		selected_item = false;
-
-		project.view.draw();
-
-		if(tool_id == 'select_tool'){
-
-			$canvas.hide();
-
-		}else{
-
-			$canvas.show();
-			
-		}
-
-		eval(tool_id + '.activate()');
-	})
+	
 
 	$('body').on('keydown', function(event){ 
     	
