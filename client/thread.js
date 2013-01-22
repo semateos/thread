@@ -22,7 +22,10 @@ Template.header.events({
 		Paths.remove({}); 
 	},
 
-	'click h1': function(event){
+	'touchstart, click h1': function(event){
+
+		event.preventDefault();
+		event.stopPropagation();
 
 		projects[0].activeLayer.position = new Point(0,0);
 		projects[1].activeLayer.position = new Point(0,0);
@@ -31,7 +34,10 @@ Template.header.events({
 		projects[1].view.zoom = 1;
 	},
 
-	'click #tools li': function(event){
+	'touchstart, click #tools li': function(event){
+
+		event.preventDefault();
+		event.stopPropagation();
 
 		var current_tool = $(event.currentTarget);
 
@@ -68,14 +74,19 @@ Template.canvas.events({
 	'click #selection_delete': function(event){
 
 		event.preventDefault();
+		event.stopPropagation();
 
 		if(self.selected_item){
 
-			Paths.remove({_id:self.selected_item.__id});
+			Paths.remove({_id:self.selected_item.__id}, function(err){
 
-			self.selected_item = false;
+				self.selected_item = false;
 
-			self.update_selection_tools();
+				self.update_selection_tools();
+
+			});
+
+			
 		}
 	}
 });
