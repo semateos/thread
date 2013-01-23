@@ -37,7 +37,6 @@ body, html{
 	z-index: 100;
 	color: red;
 	position: absolute;
-	width: 100%;
 	-webkit-transform: translateZ(0);
 	-moz-transform: translateZ(0);
 }
