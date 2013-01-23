@@ -446,8 +446,6 @@ Template.canvas.rendered = function () {
 
 	$('body').on('keydown', function(event){ 
     	
-		event.preventDefault();
-
 		console.log("key" + event.which);
 
 		if(event.which == 8 && selected_item){
