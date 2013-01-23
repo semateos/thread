@@ -25,10 +25,10 @@
 </template>
 
 <template name="canvas">
+	<ul id="selection_tools">
+		<li id="selection_delete">delete</li> 
+	</ul>
 	{{#constant}}
-		<ul id="selection_tools">
-			<li id="selection_delete">delete</li> 
-		</ul>
 		<canvas id="canvas" resize></canvas>
 		<canvas id="canvas2" resize></canvas>
 	{{/constant}}	

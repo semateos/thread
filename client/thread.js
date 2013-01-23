@@ -22,7 +22,7 @@ Template.header.events({
 		Paths.remove({}); 
 	},
 
-	'touchstart, click h1': function(event){
+	'touchstart h1, click h1': function(event){
 
 		event.preventDefault();
 		event.stopPropagation();
@@ -34,7 +34,7 @@ Template.header.events({
 		projects[1].view.zoom = 1;
 	},
 
-	'touchstart, click #tools li': function(event){
+	'touchstart #tools li, click #tools li': function(event){
 
 		event.preventDefault();
 		event.stopPropagation();
@@ -66,12 +66,14 @@ Template.header.events({
 		}
 
 		eval('self.' + tool_id + '.activate()');
+
+		self.update_selection_tools();
 	}
 });
 
 Template.canvas.events({
 
-	'click #selection_delete': function(event){
+	'touchstart #selection_delete, click #selection_delete': function(event){
 
 		event.preventDefault();
 		event.stopPropagation();
