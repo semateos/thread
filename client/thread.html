@@ -15,12 +15,13 @@
 	<div id="header">
 		<div id="logo"></div>
 		<h1>thread</h1>
+		<div id="login">{{loginButtons}}</div>
 		<ul id="tools">
-			<li class="tool selected" id="move_tool">explore</li>
-			<li class="tool" id="draw_tool" >draw</li>
-			<li class="tool" id="select_tool">edit</li>
-			<li id="login">{{loginButtons align="right"}}</li>
+			<li class="tool selected" id="move_tool"><i class="icon-move"/></li>
+			<li class="tool" id="draw_tool" ><i class="icon-pen"/></li>
+			<li class="tool" id="select_tool"><i class="icon-edit"/></li>
 		</ul>
+		
 	</div>
 </template>
 
@@ -31,7 +32,7 @@
 
 <template name="canvas">
 	<ul id="selection_tools">
-		<li id="selection_delete">delete</li> 
+		<li id="selection_delete"><i class="icon-trash"/></li> 
 	</ul>
 	{{#constant}}
 		<canvas id="canvas" resize></canvas>

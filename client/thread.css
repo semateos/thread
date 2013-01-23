@@ -1,11 +1,11 @@
 /* CSS declarations go here */
 @font-face {
   font-family: "raleway";
-  src: url("/webfonts/raleway_thin-webfont.eot");
+  src: url("/fonts/raleway_thin-webfont.eot");
   src: local("☺"),
-    url("/webfonts/raleway_thin-webfont.woff") format("woff"),
-    url("/webfonts/raleway_thin-webfont.otf") format("opentype"),
-    url("/webfonts/raleway_thin-webfont.svg") format("svg");
+    url("/fonts/raleway_thin-webfont.woff") format("woff"),
+    url("/fonts/raleway_thin-webfont.otf") format("opentype"),
+    url("/fonts/raleway_thin-webfont.svg") format("svg");
   }
 
 body, html{
@@ -55,9 +55,11 @@ body, html{
 }
 
 #login{
+	position: absolute;
 	color: red;
 	line-height: 1em;
-
+	top: 20px;
+	left: 150px;
 }
 
 #login-buttons a.login-link-text{
@@ -78,21 +80,33 @@ body, html{
 	margin: 0;
 	display:block;
 	position: absolute;
-	top: 20px;
-	right: 5px;
+	top: 10px;
+	right: 0px;
 	list-style: none;
 }
 
 #tools li{
 	display: inline-block;
 	line-height: 1em;
-	margin-right: 20px;
+	margin-right: 10px;
 	cursor:pointer;
 }
 
+#tools li.tool{
+	color: #333;
+	background: red;
+	height: 40px;
+	width: 30px;
+	line-height: 38px;
+	padding: 0 0 0 10px;
+	border-radius: 50%;
+	font-size: 0.8em;
+
+}
+
 #tools li.selected,
-#tools li:hover{
-	color: orange;
+#tools li.tool:hover{
+	background: orange;
 }
 
 #selection_tools{
@@ -108,9 +122,10 @@ body, html{
 	float:left;
 	background: #0592d9;
 	color: white;
-	padding: 10px;
-	font-size: 0.5em;
-	line-height: 0.5em;
+	padding: 7px 12px 10px 7px;
+	font-size: 0.8em;
+	line-height: 0.8;
+	border-radius: 0 50% 50% 0;
 	cursor: pointer;
 }
 
