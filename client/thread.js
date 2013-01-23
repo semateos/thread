@@ -1,3 +1,5 @@
+
+
 paper.install(window);
 
 Paths = new Meteor.Collection("paths");
@@ -34,7 +36,7 @@ Template.header.events({
 		projects[1].view.zoom = 1;
 	},
 
-	'touchstart #tools li, click #tools li': function(event){
+	'touchstart .tool, click .tool': function(event){
 
 		event.preventDefault();
 		event.stopPropagation();
@@ -80,13 +82,13 @@ Template.canvas.events({
 
 		if(self.selected_item){
 
-			Paths.remove({_id:self.selected_item.__id}, function(err){
+			var id = self.selected_item.__id;
 
-				self.selected_item = false;
+			self.selected_item = false;
 
-				self.update_selection_tools();
+			self.update_selection_tools();
 
-			});
+			Paths.remove({_id:id});
 
 			
 		}

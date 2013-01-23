@@ -1,3 +1,4 @@
+/*
 var Router = Backbone.Router.extend({
  	
  	renderTemplate: function(template){
@@ -7,7 +8,7 @@ var Router = Backbone.Router.extend({
  	
  	routes: {
 		"": 		"index",
-		"books": 	"books",
+		"login": 	"login",
 	},
 
 	index: function() {
@@ -15,9 +16,9 @@ var Router = Backbone.Router.extend({
 		this.renderTemplate(Template.index);
 	},
 
-	books: function() {
+	login: function() {
   	
-  		this.renderTemplate(Template.books);
+  		this.renderTemplate(Template.login);
 	},
 });
 
@@ -25,3 +26,4 @@ var app = new Router;
 Meteor.startup(function () {
   Backbone.history.start({pushState: true});
 });
+*/

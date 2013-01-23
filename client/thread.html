@@ -1,19 +1,24 @@
 <head>
-	<title>thred</title>
+	<title>thread</title>
 </head>
 
 <body>
-	{{> index}}
+	{{>index}}
 </body>
+
+<template name="login">
+	<div>test</div>
+	<div>{{loginButtons}}</div>
+</template>
 
 <template name="header">
 	<div id="header">
 		<div id="logo"></div>
-		<h1>thred</h1>
+		<h1>thread</h1>
 		<ul id="tools">
-			<li id="move_tool" class="selected">explore</li>
-			<li id="draw_tool" >draw</li>
-			<li id="select_tool">edit</li>
+			<li class="tool selected" id="move_tool">explore</li>
+			<li class="tool" id="draw_tool" >draw</li>
+			<li class="tool" id="select_tool">edit</li>
 			<li id="login">{{loginButtons align="right"}}</li>
 		</ul>
 	</div>
