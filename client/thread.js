@@ -4,6 +4,34 @@ paper.install(window);
 
 Paths = new Meteor.Collection("paths");
 
+
+//router to handle setting the position and browser history
+
+var Router = Backbone.Router.extend({
+
+	routes: {
+
+		":x,:y": "position", // #go to a coordinate
+	},
+
+	position: function(x,y) {
+		
+		eval("var point = new Point(" + x + ',' + y + ")");
+		
+		console.log('location: ' + point);
+
+		self.set_position(point);
+	}
+});
+
+var router = new Router;
+
+Meteor.startup(function () {
+
+//  Backbone.history.start({pushState: true});
+
+});
+
 Template.header.rendered = function () {
 	
 	var canvas = $('#logo');
@@ -36,6 +64,11 @@ Template.header.events({
 		projects[1].view.zoom = 1;
 	},
 
+	
+});
+
+Template.canvas.events({
+
 	'touchstart .tool, click .tool': function(event){
 
 		event.preventDefault();
@@ -46,7 +79,7 @@ Template.header.events({
 		var tool_id = current_tool.attr('id');
 
 		$('#tools li').removeClass('selected');
-		
+
 		current_tool.addClass('selected');
 
 		project.activeLayer.selected = false;
@@ -70,10 +103,7 @@ Template.header.events({
 		eval('self.' + tool_id + '.activate()');
 
 		self.update_selection_tools();
-	}
-});
-
-Template.canvas.events({
+	},
 
 	'touchstart #selection_delete, click #selection_delete': function(event){
 
@@ -104,13 +134,70 @@ Template.canvas.rendered = function () {
 	var $canvas2 = $('#canvas2');
 
 
-	projects[0].activeLayer.position = new Point(0,0);
-	projects[1].activeLayer.position = new Point(0,0);
+	self.selected_item = false;
 
-	//$canvas[0].getContext('2d').scale(0.5,0.5);
-	//$canvas2[0].getContext('2d').scale(0.5,0.5);
+	var $selection_tools = $('#selection_tools');
 
-	self.resizeView = function(){
+	self.update_selection_tools = function(){
+
+		var offset = projects[0].activeLayer.position;
+
+		if(self.selected_item && self.selected_item.selected){
+
+			$selection_tools.show();
+
+			$selection_tools.css('top', self.selected_item.bounds.y + $canvas.height()/2 + offset.y);
+
+			$selection_tools.css('left', self.selected_item.bounds.right + $canvas.width()/2 + offset.x);
+
+		}else{
+
+			$selection_tools.hide();
+		}
+	}
+
+	// push the current location onto the browser history stack
+
+	self.push_position_history = function(){
+
+		var point = projects[0].activeLayer.position.round();	
+
+		var point_text = point.x + ',' + point.y;
+
+		router.navigate(point_text, {trigger: false});
+	}
+
+	//reposition the canvas to a point
+
+	self.set_position = function(point){
+
+		projects[0].activeLayer.setPosition(point);
+		projects[1].activeLayer.setPosition(point);
+
+		self.update_selection_tools();
+
+		projects[0].view.draw();
+		projects[1].view.draw();
+	}
+
+	//reposition the canvas by a set amount
+
+	self.translate_canvas = function(delta){
+
+		projects[0].activeLayer.translate(delta);
+		projects[1].activeLayer.translate(delta);
+
+		self.update_selection_tools();
+
+		projects[0].view.draw();
+		projects[1].view.draw();
+	}
+
+
+	self.resize_view = function(){
+
+		//$canvas[0].getContext('2d').scale(0.5,0.5);
+		//$canvas2[0].getContext('2d').scale(0.5,0.5);
 
 		/*
 		var w1 = $canvas.attr('width');
@@ -132,27 +219,39 @@ Template.canvas.rendered = function () {
 		//projects[1].view.zoom = 2;
 	}
 
-	self.resizeView();
+	self.resize_view();
 	
 	projects[0].view.onResize = function(event) {
     	
-		self.resizeView();
+		self.resize_view();
 	}
 
 	projects[1].view.onResize = function(event) {
     	
-		self.resizeView();
+		self.resize_view();
 	}
 
-	
+
 	projects[0].activate();
 	
+	self.set_position(new Point(0,0));
+
 	console.log('canvas rendered');
 
+
+	//start the history to set the inital position based on url
+
+	Backbone.history.start({pushState: true});
+
+
+	//used to keep track of paths by id or by path shape:
 	var path_pointers = {}
 	var active_path_pointers = {}
 
-	// Create a simple drawing tool:
+
+
+	// drawing tool:
+
 	self.draw_tool = new Tool();
 	var path;
 	var offset;
@@ -218,27 +317,7 @@ Template.canvas.rendered = function () {
 	var segment, path;
 	var movePath = false;
 	
-	self.selected_item = false;
-
-	var $selection_tools = $('#selection_tools');
-
-	self.update_selection_tools = function(){
-
-		var offset = projects[0].activeLayer.position;
-
-		if(self.selected_item && self.selected_item.selected){
-
-			$selection_tools.show();
-
-			$selection_tools.css('top', self.selected_item.bounds.y + $canvas.height()/2 + offset.y);
-
-			$selection_tools.css('left', self.selected_item.bounds.right + $canvas.width()/2 + offset.x);
-
-		}else{
-
-			$selection_tools.hide();
-		}
-	}
+	
 
 	self.select_tool.onMouseDown = function(event) {
 			
@@ -377,7 +456,6 @@ Template.canvas.rendered = function () {
 		if (segment) {
 
 			segment.point = event.point.subtract(offset);
-			//path.smooth();
 		}
 
 		if (movePath){
@@ -391,8 +469,8 @@ Template.canvas.rendered = function () {
 		self.update_selection_tools();
 	}
 
-
-	//move tool - reposition the canvas
+	
+	//move tool:
 
 	projects[0].activate;
 
@@ -401,6 +479,7 @@ Template.canvas.rendered = function () {
 	self.move_tool.onMouseDown = function(event) {
 
 		console.log(projects[0].activeLayer.position);
+		console.log(projects[1].activeLayer.position);
 
 		projects[0].activate;
 
@@ -413,14 +492,23 @@ Template.canvas.rendered = function () {
 
 		event.preventDefault();
 
-		projects[0].activeLayer.translate(event.delta);
-		projects[1].activeLayer.translate(event.delta);
+		self.translate_canvas(event.delta);
+	}
+
+	self.move_tool.onMouseUp = function(event) {
+
+		self.push_position_history();
 	}
 
 	self.move_tool.activate();
 
 
+
+
+	//window scrolling - also repositions the canvas
+
 	self.scroll_speed = 0.4;
+	self.scroll_timer = false;
 
 	$(window).bind('mousewheel', function(e){
 
@@ -434,13 +522,11 @@ Template.canvas.rendered = function () {
 
 			var delta = new Point(wheel.wheelDeltaX*self.scroll_speed,wheel.wheelDeltaY*self.scroll_speed);
 
-			projects[0].activeLayer.translate(delta);
-			projects[1].activeLayer.translate(delta);
+			self.translate_canvas(delta);
 
-			self.update_selection_tools();
+			clearTimeout(self.scroll_timer);
 
-			projects[0].view.draw();
-			projects[1].view.draw();
+			self.scroll_timer = setTimeout( self.push_position_history , 150 );
 		}
     });
 
