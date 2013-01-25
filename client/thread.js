@@ -10,8 +10,13 @@ Paths = new Meteor.Collection("paths");
 var Router = Backbone.Router.extend({
 
 	routes: {
-
+		"": "index", 
 		":x,:y": "position", // #go to a coordinate
+	},
+
+	index: function(){
+
+		self.set_position(new Point(0,0));
 	},
 
 	position: function(x,y) {
@@ -45,23 +50,15 @@ Template.header.rendered = function () {
 
 Template.header.events({
 	
-	'click #logo': function(event){
-
-		projects[1].activeLayer.removeChildren();
-
-		Paths.remove({}); 
-	},
-
-	'touchstart h1, click h1': function(event){
+	'touchstart h1, click #logo, touchstart h1, click h1': function(event){
 
 		event.preventDefault();
 		event.stopPropagation();
 
-		projects[0].activeLayer.position = new Point(0,0);
-		projects[1].activeLayer.position = new Point(0,0);
-
 		projects[0].view.zoom = 1;
 		projects[1].view.zoom = 1;
+
+		router.navigate('', {trigger: true});
 	},
 
 	
@@ -690,23 +687,34 @@ Template.canvas.rendered = function () {
 
 		var values = {
 			d:d,
-			x:bounds.x,
-			y:bounds.y,
-			x2:bounds.x + bounds.width,
-			y2:bounds.y + bounds.height,
+			left:bounds.left,
+			top:bounds.top,
+			right:bounds.right,
+			bottom:bounds.bottom,
 			width:bounds.width,
 			height:bounds.height
 		}
 
 		if(id){
 
-			Paths.update({_id:id}, {$set: values}, function(err){});
+			//var result = Meteor.call('updatePath', id, values);
+
+			Paths.update({_id:id}, {$set: values}, function(err){
+
+				if(err){console.log(err)}
+			});
 
 		}else{
 
+			values.owner = Meteor.userId();
+
+			path.__id = Meteor.call('addPath', values);
+
+			/*
 			Paths.insert(values, function(id,err){
 				path.__id = id;
 			});
+			*/
 		}
 	}
 
