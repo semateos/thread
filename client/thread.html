@@ -17,12 +17,24 @@
 		<h1>thread /</h1>
 		<div id="login">{{loginButtons}}</div>
 	</div>
+</template>
+
+<template name="share">
+	
+	<div id="share">
+		
+		<a class="socialite twitter-follow" href="https://twitter.com/semateos" data-type="follow" data-show-count="false" data-lang="en" data-default-href="https://twitter.com/semateos">Follow @semateos</a>
+
+		<a class="socialite twitter-share" href="http://twitter.com/share" data-show-count="false" data-url="http://thread.meteor.com/{{point.x}},{{point.y}}">Share on Twitter</a>
+
+	</div>
 	
 </template>
 
 <template name="index">
 	{{> header}}
 	{{> canvas}}
+	{{> share}}
 </template>
 
 <template name="canvas">

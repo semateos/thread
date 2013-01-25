@@ -37,6 +37,16 @@ Meteor.startup(function () {
 
 });
 
+Template.share.point = function(){
+
+	return Session.get("current_point");
+}
+
+Template.share.rendered = function(){
+
+	Socialite.load('#share');
+}
+
 Template.header.rendered = function () {
 	
 	var canvas = $('#logo');
@@ -59,9 +69,7 @@ Template.header.events({
 		projects[1].view.zoom = 1;
 
 		router.navigate('', {trigger: true});
-	},
-
-	
+	}	
 });
 
 Template.canvas.events({
@@ -159,6 +167,8 @@ Template.canvas.rendered = function () {
 
 		var point = projects[0].activeLayer.position.round();	
 
+		Session.set("current_point", point);
+		
 		var point_text = point.x + ',' + point.y;
 
 		router.navigate(point_text, {trigger: false});
@@ -167,6 +177,8 @@ Template.canvas.rendered = function () {
 	//reposition the canvas to a point
 
 	self.set_position = function(point){
+
+		Session.set("current_point", point);
 
 		projects[0].activeLayer.setPosition(point);
 		projects[1].activeLayer.setPosition(point);
