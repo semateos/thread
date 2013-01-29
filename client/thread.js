@@ -141,10 +141,78 @@ Template.canvas.rendered = function () {
 	var $canvas = $('#canvas');
 	var $canvas2 = $('#canvas2');
 
+	//used to keep track of paths by id or by path shape:
+
+	var path_pointers = {}
+	var active_path_pointers = {}
+
+	//stores subscriptions to each block of canvas
+
+	self.blocks = {}
+	
+	//adds a subscription by rectange
+	self.block_subscribe = function(top,left,bottom,right){
+
+		self.blocks[top+':'+left] = Meteor.subscribe("paths", top,left,bottom,right, function() {
+			
+			console.log('subscription ready');
+
+			//projects[1].activeLayer.removeChildren();
+
+			var dots = new Group();
+			
+			dots.addChild(new Path.Circle(new Point(left, top), 3));
+			dots.addChild(new Path.Circle(new Point(right, top), 3));
+			dots.addChild(new Path.Circle(new Point(left, bottom), 3));
+			dots.addChild(new Path.Circle(new Point(right, bottom), 3));
+			dots.fillColor = 'red';
+
+			//layer1.removeChildren();
+			
+
+		});
+
+		return self.blocks[top+':'+left];
+	}
+
+	//calculate the blocks needed for the current viewport
+
+	self.update_blocks = function(){
+
+		console.log('update blocks')
+
+		var point = projects[1].activeLayer.position;
+		var bounds = projects[1].view.bounds;
+
+		var left = bounds.left - point.x;
+		var top = bounds.top - point.y;
+		var right = bounds.right - point.x;
+		var bottom = bounds.bottom - point.y;
+
+		var block_left = Math.floor(left / 1000)*1000;
+		var block_top = Math.floor(top / 1000)*1000;
+
+		var block_right = Math.ceil(right / 1000)*1000;
+		var block_bottom = Math.ceil(bottom / 1000)*1000;
+
+
+		var point_text = point.x + ',' + point.y;
+
+		console.log('center: ' + point);
+		console.log('view bounds: ' + left + ',' + top + ' : ' + right + ',' + bottom );
+		console.log('blocks bounds: ' + block_left + ',' + block_top + ' : ' + block_right + ',' + block_bottom);
+
+
+
+	}
+
+	//manage selected items
 
 	self.selected_item = false;
 
 	var $selection_tools = $('#selection_tools');
+
+	//draw or undraw tools for the current selection
 
 	self.update_selection_tools = function(){
 
@@ -174,7 +242,7 @@ Template.canvas.rendered = function () {
 		
 		var point_text = point.x + ',' + point.y;
 
-		console.log('view bounds: ' + projects[0].view.bounds);
+		self.update_blocks();
 
 		router.navigate(point_text, {trigger: false});
 	}
@@ -189,6 +257,8 @@ Template.canvas.rendered = function () {
 		projects[1].activeLayer.setPosition(point);
 
 		self.update_selection_tools();
+
+		self.update_blocks();
 
 		projects[0].view.draw();
 		projects[1].view.draw();
@@ -254,46 +324,13 @@ Template.canvas.rendered = function () {
 	Backbone.history.start({pushState: true});
 
 
-	//used to keep track of paths by id or by path shape:
-
-	var path_pointers = {}
-	var active_path_pointers = {}
-
-
-	//stores subscriptions to each block of canvas
-
-	self.blocks = {}
 	
-	//adds a subscription by rectange
-	self.block_subscribe = function(top,left,bottom,right){
-
-		self.blocks[top+':'+left] = Meteor.subscribe("paths", top,left,bottom,right, function() {
-			
-			console.log('subscription ready');
-
-			//projects[1].activeLayer.removeChildren();
-
-			var dots = new Group();
-			
-			dots.addChild(new Path.Circle(new Point(left, top), 3));
-			dots.addChild(new Path.Circle(new Point(right, top), 3));
-			dots.addChild(new Path.Circle(new Point(left, bottom), 3));
-			dots.addChild(new Path.Circle(new Point(right, bottom), 3));
-			dots.fillColor = 'red';
-
-			//layer1.removeChildren();
-			
-
-		});
-
-		return self.blocks[top+':'+left];
-	}
 
 	//start test subscriptions
 	var test1 = self.block_subscribe(0,0,500,500);
-	var test2 = self.block_subscribe(0,-500,500,0);
-
-
+	var test2 = self.block_subscribe(-500,-500,0,0);
+	var test3 = self.block_subscribe(0,-500,500,0);
+	var test4 = self.block_subscribe(-500,0,0,500);
 
 	//load the data
 	var paths = Paths.find();

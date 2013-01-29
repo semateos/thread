@@ -1,6 +1,6 @@
 Paths = new Meteor.Collection("paths");
 
-Meteor.publish("paths", function (top, left, bottom, right) {
+Meteor.publish("paths", function (left, top, right, bottom) {
 
 	console.log("subscribe rect: " + top + "," + left);
 
