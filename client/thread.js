@@ -132,8 +132,11 @@ Template.canvas.events({
 
 Template.canvas.rendered = function () {
 
-	paper.setup('canvas');
-	paper.setup('canvas2');
+	//two paper canvases, one for drawing on, one for displaying drawn elements
+	//for performance reason separate canvases is better - also, I think helps with reactivity
+
+	paper.setup('canvas'); // drawing canvas
+	paper.setup('canvas2'); // data canvas
 
 	var $canvas = $('#canvas');
 	var $canvas2 = $('#canvas2');
@@ -171,6 +174,8 @@ Template.canvas.rendered = function () {
 		
 		var point_text = point.x + ',' + point.y;
 
+		console.log('view bounds: ' + projects[0].view.bounds);
+
 		router.navigate(point_text, {trigger: false});
 	}
 
@@ -202,6 +207,7 @@ Template.canvas.rendered = function () {
 		projects[1].view.draw();
 	}
 
+	//if the canvas is resized maks sure the center is centered
 
 	self.resize_view = function(){
 
@@ -230,12 +236,7 @@ Template.canvas.rendered = function () {
 
 	self.resize_view();
 	
-	projects[0].view.onResize = function(event) {
-    	
-		self.resize_view();
-	}
-
-	projects[1].view.onResize = function(event) {
+	projects[0].view.onResize = projects[1].view.onResize = function(event) {
     	
 		self.resize_view();
 	}
@@ -254,9 +255,197 @@ Template.canvas.rendered = function () {
 
 
 	//used to keep track of paths by id or by path shape:
+
 	var path_pointers = {}
 	var active_path_pointers = {}
 
+
+	//stores subscriptions to each block of canvas
+
+	self.blocks = {}
+	
+	//adds a subscription by rectange
+	self.block_subscribe = function(top,left,bottom,right){
+
+		self.blocks[top+':'+left] = Meteor.subscribe("paths", top,left,bottom,right, function() {
+			
+			console.log('subscription ready');
+
+			//projects[1].activeLayer.removeChildren();
+
+			var dots = new Group();
+			
+			dots.addChild(new Path.Circle(new Point(left, top), 3));
+			dots.addChild(new Path.Circle(new Point(right, top), 3));
+			dots.addChild(new Path.Circle(new Point(left, bottom), 3));
+			dots.addChild(new Path.Circle(new Point(right, bottom), 3));
+			dots.fillColor = 'red';
+
+			//layer1.removeChildren();
+			
+
+		});
+
+		return self.blocks[top+':'+left];
+	}
+
+	//start test subscriptions
+	var test1 = self.block_subscribe(0,0,500,500);
+	var test2 = self.block_subscribe(0,-500,500,0);
+
+
+
+	//load the data
+	var paths = Paths.find();
+
+	//prepare a svg import path element
+	var path = new Path();
+	
+	projects[1].activate();
+
+	path.strokeColor = 'red';
+	path.add(new Point(0,0));
+	path.add(new Point(0,5));
+	path.add(new Point(10,10));
+	path.smooth();
+	
+	//will be used to import svg paths
+	var p = path.exportSvg();
+	
+	path.remove();
+
+	//watch for path data changes
+	var handle = paths.observe({
+
+		added: function (path_data) {
+
+			projects[1].activate();
+			
+			console.log('added ' + path_data._id + ' : ' + path_data.d);
+
+			projects[1].activate();
+
+			var d = path_data.d;
+	
+			$(p).attr('d', d);
+		
+			$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
+				
+			var path = project.importSvg($(p)[0]);
+			
+			path.__id = path_data._id;
+
+			path_pointers[path_data._id] = path;
+
+			if(active_path_pointers[d]){
+
+				console.log('remove from drawing layer');
+
+				active_path_pointers[d].remove();
+			};
+
+			projects[1].view.draw();
+			projects[0].view.draw();
+
+		},
+
+		changed: function(path_data, index, old_path_data){
+
+			projects[1].activate();
+
+			if(old_path_data.d != path_data.d){
+
+				console.log('updated ' + path_data._id + ' : ' + path_data.d);
+
+				projects[1].activate();
+
+				var path = path_pointers[path_data._id];
+
+				if(path){
+
+					path.remove();	
+				}
+			
+				var d = path_data.d;
+		
+				$(p).attr('d', d);
+			
+				$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
+					
+				path = project.importSvg($(p)[0]);
+				
+				path.__id = path_data._id;
+
+				path_pointers[path_data._id] = path;
+
+				projects[1].view.draw();
+			}
+
+		},
+
+		removed: function (path_data) {
+			
+			console.log('removed ' + path_data.d);
+
+			var path = path_pointers[path_data._id];
+
+			if(path){
+				
+				path.remove();	
+			}
+
+			projects[1].view.draw();
+			
+		}
+	});
+	
+
+	//update or insert new paths
+	self.savePath = function(path, d){
+
+		if(!d){
+
+			var p = path.exportSvg();
+			
+			d = $(p).attr('d');
+		}
+		
+		var id = path.__id;
+
+		var bounds = path.bounds;
+
+		var values = {
+			d:d,
+			loc: [bounds.x, bounds.y],
+			left:bounds.left,
+			top:bounds.top,
+			right:bounds.right,
+			bottom:bounds.bottom,
+			
+		}
+
+		if(id){
+
+			//var result = Meteor.call('updatePath', id, values);
+
+			Paths.update({_id:id}, {$set: values}, function(err){
+
+				if(err){console.log(err)}
+			});
+
+		}else{
+
+			values.owner = Meteor.userId();
+
+			path.__id = Meteor.call('addPath', values);
+
+			/*
+			Paths.insert(values, function(id,err){
+				path.__id = id;
+			});
+			*/
+		}
+	}
 
 
 	// drawing tool:
@@ -575,160 +764,6 @@ Template.canvas.rendered = function () {
 
 
 	
-	
-	//redraw whenever the data changes
-	self.drawCanvas = Meteor.subscribe("allpaths", function() {
-		
-		console.log('subscription ready');
-
-		projects[1].activate();
-
-		var path = new Path();
-		
-		path.strokeColor = 'red';
-		path.add(new Point(0,0));
-		path.add(new Point(0,5));
-		path.add(new Point(10,10));
-		path.smooth();
-		
-		var p = path.exportSvg();
-		
-		path.remove();
-		
-		
-		projects[1].activeLayer.removeChildren();
-
-		//layer1.removeChildren();
-		
-		var paths = Paths.find();
-
-		var handle = paths.observe({
-
-			added: function (path_data) {
-
-				console.log('added ' + path_data._id + ' : ' + path_data.d);
-
-				projects[1].activate();
-
-				var d = path_data.d;
-		
-				$(p).attr('d', d);
-			
-				$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-					
-				var path = project.importSvg($(p)[0]);
-				
-				path.__id = path_data._id;
-
-				path_pointers[path_data._id] = path;
-
-				if(active_path_pointers[d]){
-
-					console.log('remove from drawing layer');
-
-					active_path_pointers[d].remove();
-				};
-
-				projects[1].view.draw();
-				projects[0].view.draw();
-
-			},
-
-			changed: function(path_data, index, old_path_data){
-
-				if(old_path_data.d != path_data.d){
-
-					console.log('updated ' + path_data._id + ' : ' + path_data.d);
-
-					projects[1].activate();
-
-					var path = path_pointers[path_data._id];
-
-					if(path){
-
-						path.remove();	
-					}
-				
-					var d = path_data.d;
-			
-					$(p).attr('d', d);
-				
-					$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-						
-					path = project.importSvg($(p)[0]);
-					
-					path.__id = path_data._id;
-
-					path_pointers[path_data._id] = path;
-
-					projects[1].view.draw();
-				}
-
-			},
-
-			removed: function (path_data) {
-				
-				console.log('removed ' + path_data.d);
-
-				var path = path_pointers[path_data._id];
-
-				if(path){
-					
-					path.remove();	
-				}
-
-				projects[1].view.draw();
-				
-			}
-		});
-	});
-	
-	
-	self.savePath = function(path, d){
-
-		if(!d){
-
-			var p = path.exportSvg();
-			
-			d = $(p).attr('d');
-		}
-		
-		var id = path.__id;
-
-		var bounds = path.bounds;
-
-		var values = {
-			d:d,
-			left:bounds.left,
-			top:bounds.top,
-			right:bounds.right,
-			bottom:bounds.bottom,
-			width:bounds.width,
-			height:bounds.height
-		}
-
-		if(id){
-
-			//var result = Meteor.call('updatePath', id, values);
-
-			Paths.update({_id:id}, {$set: values}, function(err){
-
-				if(err){console.log(err)}
-			});
-
-		}else{
-
-			values.owner = Meteor.userId();
-
-			path.__id = Meteor.call('addPath', values);
-
-			/*
-			Paths.insert(values, function(id,err){
-				path.__id = id;
-			});
-			*/
-		}
-	}
 
 	
 

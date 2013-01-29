@@ -1,8 +1,10 @@
 Paths = new Meteor.Collection("paths");
 
-Meteor.publish("allpaths", function () {
+Meteor.publish("paths", function (top, left, bottom, right) {
 
-	return Paths.find({});
+	console.log("subscribe rect: " + top + "," + left);
+
+	return Paths.find({$or: [ {$and: [ {top: {$gt: top}}, {top: {$lt: bottom}}, {left: {$gt: left}}, {left: {$lt: right}} ]}, {$and: [ {bottom: {$gt: top}}, {bottom: {$lt: bottom}}, {right: {$gt: left}}, {right: {$lt: right}} ]}] });
 });
 
 
