@@ -151,9 +151,9 @@ Template.canvas.rendered = function () {
 	self.blocks = {}
 	
 	//adds a subscription by rectange
-	self.block_subscribe = function(top,left,bottom,right){
+	self.block_subscribe = function(left, top, right, bottom){
 
-		self.blocks[top+':'+left] = Meteor.subscribe("paths", top,left,bottom,right, function() {
+		var subscription = Meteor.subscribe("paths", left, top, right, bottom, function() {
 			
 			console.log('subscription ready');
 
@@ -169,10 +169,9 @@ Template.canvas.rendered = function () {
 
 			//layer1.removeChildren();
 			
-
 		});
 
-		return self.blocks[top+':'+left];
+		return subscription;
 	}
 
 	//calculate the blocks needed for the current viewport
@@ -184,27 +183,78 @@ Template.canvas.rendered = function () {
 		var point = projects[1].activeLayer.position;
 		var bounds = projects[1].view.bounds;
 
+		//translate the viewport by the current location
 		var left = bounds.left - point.x;
 		var top = bounds.top - point.y;
 		var right = bounds.right - point.x;
 		var bottom = bounds.bottom - point.y;
 
-		var block_left = Math.floor(left / 1000)*1000;
-		var block_top = Math.floor(top / 1000)*1000;
+		var block_size = 500;
 
-		var block_right = Math.ceil(right / 1000)*1000;
-		var block_bottom = Math.ceil(bottom / 1000)*1000;
+		//expand the current viewport and round up to the nearest block
 
+		var block_left = Math.floor((left - block_size) / block_size)*block_size;
+		var block_top = Math.floor((top - block_size) / block_size)*block_size;
 
-		var point_text = point.x + ',' + point.y;
+		var block_right = Math.ceil((right + block_size) / block_size)*block_size;
+		var block_bottom = Math.ceil((bottom + block_size) / block_size)*block_size;
 
 		console.log('center: ' + point);
 		console.log('view bounds: ' + left + ',' + top + ' : ' + right + ',' + bottom );
 		console.log('blocks bounds: ' + block_left + ',' + block_top + ' : ' + block_right + ',' + block_bottom);
 
 
+		//divide the current viewing area into subscription blocks
+
+		var curent_blocks = {}
+
+		var r = new Rectangle(block_left,block_top,block_size,block_size);
+
+		while(r.bottom <= block_bottom){
+
+			while(r.right < block_right){
+
+				console.log(r.topLeft.toString());
+
+				var r_id = r.left + ',' + r.top;
+
+				//if the block subscription doesn't already exisit, add it
+
+				if(!self.blocks[r_id]){
+
+					console.log('new subscription');
+
+					self.blocks[r_id] = self.block_subscribe(r.left, r.top, r.right, r.bottom);
+
+				}else{
+
+					console.log('subscription exists');
+				}
+
+				curent_blocks[r_id] = self.blocks[r_id];
+
+				r = new Rectangle(r.left + block_size, r.top, block_size, block_size);
+			}
+
+			r = new Rectangle(block_left, r.top + block_size, block_size, block_size);
+		}
+
+		//stop and remove subscriptions outside the current area
+
+		_.each(self.blocks, function(block, key){
+
+			if(!curent_blocks[key]){
+
+				console.log('removing subscription: ' + key);
+
+				self.blocks[key].stop();
+
+				delete self.blocks[key];
+			}
+		});
 
 	}
+
 
 	//manage selected items
 
@@ -327,10 +377,12 @@ Template.canvas.rendered = function () {
 	
 
 	//start test subscriptions
+	/*
 	var test1 = self.block_subscribe(0,0,500,500);
 	var test2 = self.block_subscribe(-500,-500,0,0);
 	var test3 = self.block_subscribe(0,-500,500,0);
 	var test4 = self.block_subscribe(-500,0,0,500);
+	*/
 
 	//load the data
 	var paths = Paths.find();

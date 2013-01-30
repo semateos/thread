@@ -2,7 +2,7 @@ Paths = new Meteor.Collection("paths");
 
 Meteor.publish("paths", function (left, top, right, bottom) {
 
-	console.log("subscribe rect: " + top + "," + left);
+	//console.log("subscribe rect: " + top + "," + left);
 
 	return Paths.find({$or: [ {$and: [ {top: {$gt: top}}, {top: {$lt: bottom}}, {left: {$gt: left}}, {left: {$lt: right}} ]}, {$and: [ {bottom: {$gt: top}}, {bottom: {$lt: bottom}}, {right: {$gt: left}}, {right: {$lt: right}} ]}] });
 });
