@@ -240,7 +240,7 @@ Template.canvas.rendered = function () {
 		}
 
 		//stop and remove subscriptions outside the current area
-
+		/*
 		_.each(self.blocks, function(block, key){
 
 			if(!curent_blocks[key]){
@@ -251,7 +251,7 @@ Template.canvas.rendered = function () {
 
 				delete self.blocks[key];
 			}
-		});
+		});*/
 
 	}
 
