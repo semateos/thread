@@ -23,7 +23,7 @@ var Router = Backbone.Router.extend({
 		
 		eval("var point = new Point(" + x + ',' + y + ")");
 		
-		console.log('location: ' + point);
+		//console.log('location: ' + point);
 
 		self.set_position(point);
 	}
@@ -155,7 +155,7 @@ Template.canvas.rendered = function () {
 
 		var subscription = Meteor.subscribe("paths", left, top, right, bottom, function() {
 			
-			console.log('subscription ready');
+			//console.log('subscription ready');
 
 			//projects[1].activeLayer.removeChildren();
 
@@ -178,7 +178,7 @@ Template.canvas.rendered = function () {
 
 	self.update_blocks = function(){
 
-		console.log('update blocks')
+		//console.log('update blocks')
 
 		var point = projects[1].activeLayer.position;
 		var bounds = projects[1].view.bounds;
@@ -199,9 +199,9 @@ Template.canvas.rendered = function () {
 		var block_right = Math.ceil((right + block_size) / block_size)*block_size;
 		var block_bottom = Math.ceil((bottom + block_size) / block_size)*block_size;
 
-		console.log('center: ' + point);
-		console.log('view bounds: ' + left + ',' + top + ' : ' + right + ',' + bottom );
-		console.log('blocks bounds: ' + block_left + ',' + block_top + ' : ' + block_right + ',' + block_bottom);
+		//console.log('center: ' + point);
+		//console.log('view bounds: ' + left + ',' + top + ' : ' + right + ',' + bottom );
+		//console.log('blocks bounds: ' + block_left + ',' + block_top + ' : ' + block_right + ',' + block_bottom);
 
 
 		//divide the current viewing area into subscription blocks
@@ -214,7 +214,7 @@ Template.canvas.rendered = function () {
 
 			while(r.right < block_right){
 
-				console.log(r.topLeft.toString());
+				//console.log(r.topLeft.toString());
 
 				var r_id = r.left + ',' + r.top;
 
@@ -222,13 +222,13 @@ Template.canvas.rendered = function () {
 
 				if(!self.blocks[r_id]){
 
-					console.log('new subscription');
+					//console.log('new subscription');
 
 					self.blocks[r_id] = self.block_subscribe(r.left, r.top, r.right, r.bottom);
 
 				}else{
 
-					console.log('subscription exists');
+					//console.log('subscription exists');
 				}
 
 				curent_blocks[r_id] = self.blocks[r_id];
@@ -245,7 +245,7 @@ Template.canvas.rendered = function () {
 
 			if(!curent_blocks[key]){
 
-				console.log('removing subscription: ' + key);
+				//console.log('removing subscription: ' + key);
 
 				self.blocks[key].stop();
 
@@ -366,7 +366,7 @@ Template.canvas.rendered = function () {
 	
 	self.set_position(new Point(0,0));
 
-	console.log('canvas rendered');
+	//console.log('canvas rendered');
 
 
 	//start the history to set the inital position based on url
@@ -410,7 +410,7 @@ Template.canvas.rendered = function () {
 
 			//projects[1].activate();
 			
-			console.log('added ' + path_data._id + ' : ' + path_data.d);
+			//console.log('added ' + path_data._id + ' : ' + path_data.d);
 
 			projects[1].activate();
 
@@ -428,7 +428,7 @@ Template.canvas.rendered = function () {
 
 			if(active_path_pointers[d]){
 
-				console.log('remove from drawing layer');
+				//console.log('remove from drawing layer');
 
 				active_path_pointers[d].remove();
 
@@ -444,7 +444,7 @@ Template.canvas.rendered = function () {
 
 			if(old_path_data.d != path_data.d){
 
-				console.log('updated ' + path_data._id + ' : ' + path_data.d);
+				//console.log('updated ' + path_data._id + ' : ' + path_data.d);
 
 				projects[1].activate();
 
@@ -474,7 +474,7 @@ Template.canvas.rendered = function () {
 
 		removed: function (path_data) {
 			
-			console.log('removed ' + path_data.d);
+			//console.log('removed ' + path_data.d);
 
 			var path = path_pointers[path_data._id];
 
@@ -519,7 +519,7 @@ Template.canvas.rendered = function () {
 
 			Paths.update({_id:id}, {$set: values}, function(err){
 
-				if(err){console.log(err)}
+				if(err){//console.log(err)}
 			});
 
 		}else{
@@ -622,7 +622,7 @@ Template.canvas.rendered = function () {
 
 			if(self.selected_item == hitResult.item){
 
-				console.log('same_item');
+				//console.log('same_item');
 
 				if (event.modifiers.shift) {
 
@@ -653,13 +653,13 @@ Template.canvas.rendered = function () {
 
 					if(self.selected_item.bounds.contains(event.point.subtract(offset))){
 
-						console.log('inside bounds');
+						//console.log('inside bounds');
 					}
 
 					self.savePath(selected_item);
 				}
 
-				console.log('different_item');
+				//console.log('different_item');
 
 				project.activeLayer.selected = false;
 
@@ -669,7 +669,7 @@ Template.canvas.rendered = function () {
 
 				self.selected_item.selected = true;
 
-				console.log(selected_item._id);
+				//console.log(selected_item._id);
 
 			}
 		}else{
@@ -680,7 +680,7 @@ Template.canvas.rendered = function () {
 
 				if(self.selected_item.bounds.contains(event.point.subtract(offset))){
 
-					console.log('inside bounds');
+					//console.log('inside bounds');
 					
 					movePath = self.selected_item;
 				
@@ -737,8 +737,8 @@ Template.canvas.rendered = function () {
 
 		event.preventDefault();
 
-		console.log('draging: ' + event.delta);
-		console.log('movePath: ' + movePath);
+		//console.log('draging: ' + event.delta);
+		//console.log('movePath: ' + movePath);
 
 		if (segment) {
 
@@ -747,7 +747,7 @@ Template.canvas.rendered = function () {
 
 		if (movePath){
 
-			console.log('movePath: ' + movePath.position);
+			//console.log('movePath: ' + movePath.position);
 
 			movePath.position = movePath.position.add(event.delta);
 
@@ -765,8 +765,8 @@ Template.canvas.rendered = function () {
 
 	self.move_tool.onMouseDown = function(event) {
 
-		console.log(projects[0].activeLayer.position);
-		console.log(projects[1].activeLayer.position);
+		//console.log(projects[0].activeLayer.position);
+		//console.log(projects[1].activeLayer.position);
 
 		projects[0].activate;
 
@@ -819,7 +819,7 @@ Template.canvas.rendered = function () {
 
 	$('body').on('keydown', function(event){ 
     	
-		console.log("key" + event.which);
+		//console.log("key" + event.which);
 
 		if(event.which == 8 && selected_item){
 
