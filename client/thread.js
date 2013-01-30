@@ -408,7 +408,7 @@ Template.canvas.rendered = function () {
 
 		added: function (path_data) {
 
-			projects[1].activate();
+			//projects[1].activate();
 			
 			console.log('added ' + path_data._id + ' : ' + path_data.d);
 
@@ -431,11 +431,11 @@ Template.canvas.rendered = function () {
 				console.log('remove from drawing layer');
 
 				active_path_pointers[d].remove();
+
+				projects[0].view.draw();
 			};
 
 			projects[1].view.draw();
-			projects[0].view.draw();
-
 		},
 
 		changed: function(path_data, index, old_path_data){
