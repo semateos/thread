@@ -141,6 +141,7 @@ Template.canvas.rendered = function () {
 	var $canvas = $('#canvas');
 	var $canvas2 = $('#canvas2');
 
+	/*
 	var $svg = $('#svg');
 	
 	$svg.svg();
@@ -151,7 +152,8 @@ Template.canvas.rendered = function () {
 	svg.configure({viewBox: '-' + width/2 + ' -' + width/2 + ' ' + width + ' ' + width, width:'100%', height:'100%'}, true);
 
 	svg.circle(0, 0, 20, {fill: 'none', stroke: 'red', strokeWidth: 1});
-
+	*/
+	
 	//used to keep track of paths by id or by path shape:
 
 	var path_pointers = {}
