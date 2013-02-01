@@ -50,7 +50,7 @@ Paths.deny({
 Meteor.methods({
 
 	addPath: function (doc) {
-
+		this.unblock();
 		doc.created = new Date(); // ms since epoch
 		return Paths.insert(doc);
 	},

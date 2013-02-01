@@ -92,6 +92,8 @@ Template.canvas.events({
 		self.selected_item = false;
 
 		var $canvas = $('#canvas');
+		var $canvas2 = $('#canvas2');
+		var $svg = $('#svg');
 
 		project.view.draw();
 
@@ -99,10 +101,17 @@ Template.canvas.events({
 
 			$canvas.hide();
 
+			//self.render_canvas_from_svg();
+
+			//$canvas2.show();
+
+			//$svg.hide();
+
 		}else{
 
 			$canvas.show();
 			
+			//$svg.show();			
 		}
 
 		eval('self.' + tool_id + '.activate()');
@@ -141,28 +150,33 @@ Template.canvas.rendered = function () {
 	var $canvas = $('#canvas');
 	var $canvas2 = $('#canvas2');
 
-	/*
+	
 	var $svg = $('#svg');
 	
 	$svg.svg();
 	
 	var width = $canvas.width();
+	var height = $canvas.height();
 
 	var svg = $svg.svg('get');
-	svg.configure({viewBox: '-' + width/2 + ' -' + width/2 + ' ' + width + ' ' + width, width:'100%', height:'100%'}, true);
+	svg.configure({viewBox: '-' + width/2 + ' -' + height/2 + ' ' + width + ' ' + height, width:width, height:height}, true);
 
-	svg.circle(0, 0, 20, {fill: 'none', stroke: 'red', strokeWidth: 1});
-	*/
+	var svg_group = svg.group();
+	var $svg_group = $(svg_group);
+	//svg.circle(0, 0, 20, {fill: 'none', stroke: 'red', strokeWidth: 1});
+	
 	
 	//used to keep track of paths by id or by path shape:
 
 	var path_pointers = {}
 	var active_path_pointers = {}
+	
 
 	//stores subscriptions to each block of canvas
 
 	self.blocks = {}
-	
+	self.curent_blocks = {}
+
 	//adds a subscription by rectange
 	self.block_subscribe = function(left, top, right, bottom){
 
@@ -171,7 +185,7 @@ Template.canvas.rendered = function () {
 			//console.log('subscription ready');
 
 			//projects[1].activeLayer.removeChildren();
-
+			
 			var dots = new Group();
 			
 			dots.addChild(new Path.Circle(new Point(left, top), 3));
@@ -179,6 +193,12 @@ Template.canvas.rendered = function () {
 			dots.addChild(new Path.Circle(new Point(left, bottom), 3));
 			dots.addChild(new Path.Circle(new Point(right, bottom), 3));
 			dots.fillColor = 'red';
+			
+
+			svg.circle(svg_group, left, top, 3, {fill: 'red', stroke: 'none'});
+			svg.circle(svg_group, right, top, 3, {fill: 'red', stroke: 'none'});
+			svg.circle(svg_group, left, bottom, 3, {fill: 'red', stroke: 'none'});
+			svg.circle(svg_group, right, bottom, 3, {fill: 'red', stroke: 'none'});
 
 			//layer1.removeChildren();
 			
@@ -193,8 +213,8 @@ Template.canvas.rendered = function () {
 
 		//console.log('update blocks')
 
-		var point = projects[1].activeLayer.position;
-		var bounds = projects[1].view.bounds;
+		var point = projects[0].activeLayer.position;
+		var bounds = projects[0].view.bounds;
 
 		//translate the viewport by the current location
 		var left = bounds.left - point.x;
@@ -219,7 +239,7 @@ Template.canvas.rendered = function () {
 
 		//divide the current viewing area into subscription blocks
 
-		var curent_blocks = {}
+		self.curent_blocks = {}
 
 		var r = new Rectangle(block_left,block_top,block_size,block_size);
 
@@ -241,10 +261,15 @@ Template.canvas.rendered = function () {
 
 				}else{
 
-					//console.log('subscription exists');
+					//self.blocks[key].disabled = false;
+
+					//self.blocks[r_id].start();
+
+					console.log('subscription exists: ' + r_id);
+
 				}
 
-				curent_blocks[r_id] = self.blocks[r_id];
+				self.curent_blocks[r_id] = self.blocks[r_id];
 
 				r = new Rectangle(r.left + block_size, r.top, block_size, block_size);
 			}
@@ -253,19 +278,24 @@ Template.canvas.rendered = function () {
 		}
 
 		//stop and remove subscriptions outside the current area
-		/*
+		
+		//console.log(self.blocks)
+		
+		
 		_.each(self.blocks, function(block, key){
 
 			if(!curent_blocks[key]){
 
-				//console.log('removing subscription: ' + key);
+				console.log('removing subscription: ' + key);
+
+				//self.blocks[key].disabled = true;
 
 				self.blocks[key].stop();
 
 				delete self.blocks[key];
 			}
-		});*/
-
+		});
+	
 	}
 
 
@@ -305,9 +335,31 @@ Template.canvas.rendered = function () {
 		
 		var point_text = point.x + ',' + point.y;
 
+		router.navigate(point_text, {trigger: false});
+
 		self.update_blocks();
 
-		router.navigate(point_text, {trigger: false});
+		var count = 0;
+
+		/*
+		_.each(self.blocks, function(block, key){
+
+			if(!self.curent_blocks[key]){
+
+				count++;
+
+				//remove excessive subscriptions?
+				if(count > 50){
+
+					console.log('removing subscription: ' + key);
+
+					self.blocks[key].stop();
+
+					delete self.blocks[key];
+				}
+			}
+		});
+		*/
 	}
 
 	//reposition the canvas to a point
@@ -317,14 +369,16 @@ Template.canvas.rendered = function () {
 		Session.set("current_point", point);
 
 		projects[0].activeLayer.setPosition(point);
-		projects[1].activeLayer.setPosition(point);
+		//projects[1].activeLayer.setPosition(point);
+
+		$svg_group.attr('transform', 'translate(' + point.x + ',' + point.y + ')');
 
 		self.update_selection_tools();
 
 		self.update_blocks();
 
 		projects[0].view.draw();
-		projects[1].view.draw();
+		//projects[1].view.draw();
 	}
 
 	//reposition the canvas by a set amount
@@ -332,12 +386,16 @@ Template.canvas.rendered = function () {
 	self.translate_canvas = function(delta){
 
 		projects[0].activeLayer.translate(delta);
-		projects[1].activeLayer.translate(delta);
+		//projects[1].activeLayer.translate(delta);
+
+		var point = projects[0].activeLayer.position;
+
+		$svg_group.attr('transform', 'translate(' + point.x + ',' + point.y + ')');
 
 		self.update_selection_tools();
 
 		projects[0].view.draw();
-		projects[1].view.draw();
+		//projects[1].view.draw();
 	}
 
 	//if the canvas is resized maks sure the center is centered
@@ -362,6 +420,8 @@ Template.canvas.rendered = function () {
 
 		projects[0].view.center = point;
 		projects[1].view.center = point;
+
+		svg.configure({viewBox: '-' + width/2 + ' -' + height/2 + ' ' + width + ' ' + height, width:width, height:height}, true);
 
 		//projects[0].view.zoom = 2;
 		//projects[1].view.zoom = 2;
@@ -416,6 +476,23 @@ Template.canvas.rendered = function () {
 	
 	path.remove();
 
+
+	self.render_canvas_from_svg = function(){
+
+		projects[1].activate();
+
+		projects[1].activeLayer.removeChildren();
+
+		projects[1].activeLayer.position = projects[0].activeLayer.position;
+
+		_.each(path_pointers, function(key, item){
+
+			project.importSvg($(item)[0]);
+		});
+
+		projects[1].view.draw();
+	}
+
 	//watch for path data changes
 	var handle = paths.observe({
 
@@ -425,19 +502,32 @@ Template.canvas.rendered = function () {
 			
 			//console.log('added ' + path_data._id + ' : ' + path_data.d);
 
-			projects[1].activate();
-
 			var d = path_data.d;
-	
-			$(p).attr('d', d);
-		
-			$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-				
-			var path = project.importSvg($(p)[0]);
-			
-			path.__id = path_data._id;
 
-			path_pointers[path_data._id] = path;
+			if(!path_pointers[path_data._id]){
+
+				//var test = svg;
+
+
+
+				path_pointers[path_data._id] = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id});
+
+				/*
+				projects[1].activate();
+
+				$(p).attr('d', d);
+			
+				$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
+					
+				var path = project.importSvg($(p)[0]);
+				
+				path.__id = path_data._id;
+
+				path_pointers[path_data._id] = path;
+
+				projects[1].view.draw();
+				*/
+			}
 
 			if(active_path_pointers[d]){
 
@@ -445,16 +535,17 @@ Template.canvas.rendered = function () {
 
 				active_path_pointers[d].remove();
 
+				delete active_path_pointers[d];
+
 				projects[0].view.draw();
 			};
 
-			projects[1].view.draw();
+			
 		},
 
 		changed: function(path_data, index, old_path_data){
 
-			projects[1].activate();
-
+			
 			if(old_path_data.d != path_data.d){
 
 				//console.log('updated ' + path_data._id + ' : ' + path_data.d);
@@ -467,7 +558,10 @@ Template.canvas.rendered = function () {
 
 					path.remove();	
 				}
-			
+
+				path_pointers[path_data._id] = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id});
+				
+				/*
 				var d = path_data.d;
 		
 				$(p).attr('d', d);
@@ -479,8 +573,8 @@ Template.canvas.rendered = function () {
 				path.__id = path_data._id;
 
 				path_pointers[path_data._id] = path;
-
-				projects[1].view.draw();
+				*/
+				//projects[1].view.draw();
 			}
 
 		},
@@ -493,14 +587,26 @@ Template.canvas.rendered = function () {
 
 			if(path){
 				
-				path.remove();	
+				path.remove();
+
+				//$('#'+path_data._id).remove();
+
+				delete path_pointers[path_data._id];
 			}
 
-			projects[1].view.draw();
+			//projects[1].view.draw();
 			
 		}
 	});
 	
+	/*
+	setTimeout(function(){
+
+		projects[0].view.draw();
+		projects[1].view.draw();
+
+	}, 200);
+	*/
 
 	//update or insert new paths
 	self.savePath = function(path, d){
