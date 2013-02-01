@@ -171,6 +171,10 @@ Template.canvas.rendered = function () {
 	var path_pointers = {}
 	var active_path_pointers = {}
 	
+	//manage selected items
+
+	self.selected_item = false;
+	var $selection_tools = $('#selection_tools');
 
 	//stores subscriptions to each block of canvas
 
@@ -299,11 +303,7 @@ Template.canvas.rendered = function () {
 	}
 
 
-	//manage selected items
-
-	self.selected_item = false;
-
-	var $selection_tools = $('#selection_tools');
+	
 
 	//draw or undraw tools for the current selection
 
@@ -508,24 +508,22 @@ Template.canvas.rendered = function () {
 
 				//var test = svg;
 
-
+				var svg_path = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
+				var svg_path_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
 				
-				var p = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
-				var p_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
+				path_pointers[path_data._id] = svg_path;
 
-				$p_hit = $(p_hit);
+
+				$p_hit = $(svg_path_hit);
+
+				$p_hit.data('id', path_data._id);
 
 				$p_hit.on('mouseover', function(e){
 
-					console.log('over path');
-
 					$(this).attr('stroke', 'blue');
-
 				});
 
 				$p_hit.on('mouseout', function(e){
-
-					console.log('over path');
 
 					$(this).attr('stroke', 'transparent');
 
@@ -533,19 +531,43 @@ Template.canvas.rendered = function () {
 
 				$p_hit.on('click', function(e){
 
-					console.log('over path');
+					var selected = $(this);
 
-					$(this).attr('stroke', 'transparent');
+					var id = selected.data('id');
+
+					projects[0].activate();
+
+					$(p).attr('d', selected.attr('d'));
+			
+					$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
+						
+					var path = project.importSvg($(p)[0]);
+
+					path.selected = true;
+
+					self.selected_item = path;
+
+					projects[0].view.draw();
+
+					$canvas.show();
+
+					path_pointers[path_data._id].remove();	
+
+					selected.remove();
+
+
+
+					//$(this).attr('stroke', 'transparent');
 
 				});
 
-				path_pointers[path_data._id] = p;
+				
 
 
 
 
 				/*
-				projects[1].activate();
+				
 
 				$(p).attr('d', d);
 			

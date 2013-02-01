@@ -42,6 +42,9 @@ body, html{
 	position: absolute;
 	height: 100%;
 	width: 100%;
+	cursor: pointer;
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
 }
 
 #header {
