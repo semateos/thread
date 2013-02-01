@@ -509,8 +509,40 @@ Template.canvas.rendered = function () {
 				//var test = svg;
 
 
+				
+				var p = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
+				var p_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
 
-				path_pointers[path_data._id] = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id});
+				$p_hit = $(p_hit);
+
+				$p_hit.on('mouseover', function(e){
+
+					console.log('over path');
+
+					$(this).attr('stroke', 'blue');
+
+				});
+
+				$p_hit.on('mouseout', function(e){
+
+					console.log('over path');
+
+					$(this).attr('stroke', 'transparent');
+
+				});
+
+				$p_hit.on('click', function(e){
+
+					console.log('over path');
+
+					$(this).attr('stroke', 'transparent');
+
+				});
+
+				path_pointers[path_data._id] = p;
+
+
+
 
 				/*
 				projects[1].activate();
