@@ -474,7 +474,7 @@ Template.canvas.rendered = function () {
 
 		delete self.path_pointers[id];
 
-		if(self.active_path_pointers[d]){
+		if(d && self.active_path_pointers[d]){
 
 			//console.log('remove from drawing layer');
 
@@ -591,31 +591,32 @@ Template.canvas.rendered = function () {
 		
 		var d = path_data.d;
 	
+		if(d){
 
-		var svg_path = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
+			var svg_path = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
 
-		var svg_path_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
-		
-		self.path_pointers[path_data._id] = svg_path;
+			var svg_path_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
+			
+			self.path_pointers[path_data._id] = svg_path;
 
 
-		$p_hit = $(svg_path_hit);
+			$p_hit = $(svg_path_hit);
 
-		$p_hit.data('id', path_data._id);
+			$p_hit.data('id', path_data._id);
 
-		if('ontouchstart' in window){
+			if('ontouchstart' in window){
 
-			$p_hit.on('touchstart', self.click_path);
+				$p_hit.on('touchstart', self.click_path);
 
-		}else{
+			}else{
 
-			$p_hit.on('click', self.click_path);
+				$p_hit.on('click', self.click_path);
 
-			$p_hit.on('mouseover', self.mouseover_path);
+				$p_hit.on('mouseover', self.mouseover_path);
 
-			$p_hit.on('mouseout', self.mouseout_path);
-		}			
-
+				$p_hit.on('mouseout', self.mouseout_path);
+			}			
+		}
 		//$p_hit.on('click', self.click_path);
 	}
 
@@ -663,40 +664,43 @@ Template.canvas.rendered = function () {
 			d = $(p).attr('d');
 		}
 		
-		var id = path.__id;
+		if(d){
 
-		var bounds = path.bounds;
+			var id = path.__id;
 
-		var values = {
-			d:d,
-			loc: [bounds.x, bounds.y],
-			left:bounds.left,
-			top:bounds.top,
-			right:bounds.right,
-			bottom:bounds.bottom,
-			
-		}
+			var bounds = path.bounds;
 
-		if(id){
+			var values = {
+				d:d,
+				loc: [bounds.x, bounds.y],
+				left:bounds.left,
+				top:bounds.top,
+				right:bounds.right,
+				bottom:bounds.bottom,
+				
+			}
 
-			//var result = Meteor.call('updatePath', id, values);
+			if(id){
 
-			Paths.update({_id:id}, {$set: values}, function(err){
+				//var result = Meteor.call('updatePath', id, values);
 
-				if(err){console.log(err)}
-			});
+				Paths.update({_id:id}, {$set: values}, function(err){
 
-		}else{
+					if(err){console.log(err)}
+				});
 
-			values.owner = Meteor.userId();
+			}else{
 
-			path.__id = Meteor.call('addPath', values);
+				values.owner = Meteor.userId();
 
-			/*
-			Paths.insert(values, function(id,err){
-				path.__id = id;
-			});
-			*/
+				path.__id = Meteor.call('addPath', values);
+
+				/*
+				Paths.insert(values, function(id,err){
+					path.__id = id;
+				});
+				*/
+			}
 		}
 	}
 
