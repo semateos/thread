@@ -17,7 +17,7 @@ Paths.allow({
 		// can only change your own documents
 		return _.all(docs, function(doc) {
 
-			console.log('test ownership: ' + userId + ' : ' + doc.owner);
+			//console.log('test ownership: ' + userId + ' : ' + doc.owner);
 
 			return doc.owner === null || doc.owner === userId;
 		});

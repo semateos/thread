@@ -101,17 +101,9 @@ Template.canvas.events({
 
 			$canvas.hide();
 
-			//self.render_canvas_from_svg();
-
-			//$canvas2.show();
-
-			//$svg.hide();
-
 		}else{
 
 			$canvas.show();
-			
-			//$svg.show();			
 		}
 
 		eval('self.' + tool_id + '.activate()');
@@ -126,6 +118,8 @@ Template.canvas.events({
 
 		if(self.selected_item){
 
+			var $canvas = $('#canvas');
+
 			var id = self.selected_item.__id;
 
 			self.selected_item = false;
@@ -134,7 +128,7 @@ Template.canvas.events({
 
 			Paths.remove({_id:id});
 
-			
+			$canvas.hide();
 		}
 	}
 });
@@ -150,21 +144,12 @@ Template.canvas.rendered = function () {
 	var $canvas = $('#canvas');
 	var $canvas2 = $('#canvas2');
 
-	
 	var $svg = $('#svg');
-	
 	$svg.svg();
-	
-	var width = $canvas.width();
-	var height = $canvas.height();
-
 	var svg = $svg.svg('get');
-	svg.configure({viewBox: '-' + width/2 + ' -' + height/2 + ' ' + width + ' ' + height, width:width, height:height}, true);
-
+	
 	var svg_group = svg.group();
 	var $svg_group = $(svg_group);
-	//svg.circle(0, 0, 20, {fill: 'none', stroke: 'red', strokeWidth: 1});
-	
 	
 	//used to keep track of paths by id or by path shape:
 
@@ -187,25 +172,19 @@ Template.canvas.rendered = function () {
 		var subscription = Meteor.subscribe("paths", left, top, right, bottom, function() {
 			
 			//console.log('subscription ready');
-
-			//projects[1].activeLayer.removeChildren();
-			
+			/*
 			var dots = new Group();
-			
 			dots.addChild(new Path.Circle(new Point(left, top), 3));
 			dots.addChild(new Path.Circle(new Point(right, top), 3));
 			dots.addChild(new Path.Circle(new Point(left, bottom), 3));
 			dots.addChild(new Path.Circle(new Point(right, bottom), 3));
 			dots.fillColor = 'red';
-			
+			*/
 
 			svg.circle(svg_group, left, top, 3, {fill: 'red', stroke: 'none'});
 			svg.circle(svg_group, right, top, 3, {fill: 'red', stroke: 'none'});
 			svg.circle(svg_group, left, bottom, 3, {fill: 'red', stroke: 'none'});
-			svg.circle(svg_group, right, bottom, 3, {fill: 'red', stroke: 'none'});
-
-			//layer1.removeChildren();
-			
+			svg.circle(svg_group, right, bottom, 3, {fill: 'red', stroke: 'none'});			
 		});
 
 		return subscription;
@@ -269,7 +248,7 @@ Template.canvas.rendered = function () {
 
 					//self.blocks[r_id].start();
 
-					console.log('subscription exists: ' + r_id);
+					//console.log('subscription exists: ' + r_id);
 
 				}
 
@@ -290,7 +269,7 @@ Template.canvas.rendered = function () {
 
 			if(!curent_blocks[key]){
 
-				console.log('removing subscription: ' + key);
+				//console.log('removing subscription: ' + key);
 
 				//self.blocks[key].disabled = true;
 
@@ -421,6 +400,10 @@ Template.canvas.rendered = function () {
 		projects[0].view.center = point;
 		projects[1].view.center = point;
 
+		var width = $canvas.width();
+		var height = $canvas.height();
+
+		var svg = $svg.svg('get');
 		svg.configure({viewBox: '-' + width/2 + ' -' + height/2 + ' ' + width + ' ' + height, width:width, height:height}, true);
 
 		//projects[0].view.zoom = 2;
@@ -477,178 +460,149 @@ Template.canvas.rendered = function () {
 	path.remove();
 
 
-	self.render_canvas_from_svg = function(){
+	
 
-		projects[1].activate();
 
-		projects[1].activeLayer.removeChildren();
+	self.remove_path = function(path_data){
 
-		projects[1].activeLayer.position = projects[0].activeLayer.position;
+		var id = path_data._id;
+		var d = path_data.d;
 
-		_.each(path_pointers, function(key, item){
+		$('#' + id).remove();
 
-			project.importSvg($(item)[0]);
-		});
+		$('#' + id + '_hit').remove();
 
-		projects[1].view.draw();
+		delete path_pointers[id];
+
+		if(active_path_pointers[d]){
+
+			//console.log('remove from drawing layer');
+
+			active_path_pointers[d].remove();
+
+			delete active_path_pointers[d];
+
+			//projects[0].view.draw();
+		};
+
+		if(active_path_pointers[id]){
+
+			//console.log('remove from drawing layer');
+
+			active_path_pointers[id].remove();
+
+			delete active_path_pointers[id];
+
+			//projects[0].view.draw();
+		};
+
+	}
+
+	self.mouseover_path = function(e){
+
+		var selected = $(this);
+
+		var id = selected.data('id');
+
+		$('#' + id).attr('stroke', '#0592d9');
+	}
+
+	self.mouseout_path = function(e){
+
+		var selected = $(this);
+
+		var id = selected.data('id');
+
+		$('#' + id).attr('stroke', 'red');
+	}
+
+	self.click_path = function(e){
+
+		var selected = $(this);
+
+		var id = selected.data('id');
+
+		projects[0].activate();
+
+		var d = selected.attr('d');
+
+		$(p).attr('d', d);
+
+		$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
+			
+		var path = project.importSvg($(p)[0]);
+
+		path.__id = id;
+
+		path.selected = true;
+
+		self.selected_item = path;
+
+		active_path_pointers[id]= path;
+
+		projects[0].view.draw();
+
+		$canvas.show();
+
+		self.update_selection_tools();
+
+
+		path_pointers[id].remove();	
+
+		selected.remove();
+
+		//$(this).attr('stroke', 'transparent');
+
+	}
+
+	self.render_path = function(path_data){
+
+		self.remove_path(path_data);
+
+		var id = path_data._id;
+		
+		var d = path_data.d;
+	
+
+		var svg_path = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
+
+		var svg_path_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
+		
+		path_pointers[path_data._id] = svg_path;
+
+
+		$p_hit = $(svg_path_hit);
+
+		$p_hit.data('id', path_data._id);
+
+		$p_hit.on('mouseover', self.mouseover_path);
+
+		$p_hit.on('mouseout', self.mouseout_path);
+
+		$p_hit.on('click', self.click_path);
 	}
 
 	//watch for path data changes
 	var handle = paths.observe({
 
 		added: function (path_data) {
-
-			//projects[1].activate();
 			
 			//console.log('added ' + path_data._id + ' : ' + path_data.d);
 
-			var d = path_data.d;
-
 			if(!path_pointers[path_data._id]){
 
-				//var test = svg;
-
-				var svg_path = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id });
-				var svg_path_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
-				
-				path_pointers[path_data._id] = svg_path;
-
-
-				$p_hit = $(svg_path_hit);
-
-				$p_hit.data('id', path_data._id);
-
-				$p_hit.on('mouseover', function(e){
-
-					$(this).attr('stroke', 'blue');
-				});
-
-				$p_hit.on('mouseout', function(e){
-
-					$(this).attr('stroke', 'transparent');
-
-				});
-
-				$p_hit.on('click', function(e){
-
-					var selected = $(this);
-
-					var id = selected.data('id');
-
-					projects[0].activate();
-
-					$(p).attr('d', selected.attr('d'));
-			
-					$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-						
-					var path = project.importSvg($(p)[0]);
-
-					path.selected = true;
-
-					self.selected_item = path;
-
-					projects[0].view.draw();
-
-					$canvas.show();
-
-					path_pointers[path_data._id].remove();	
-
-					selected.remove();
-
-
-
-					//$(this).attr('stroke', 'transparent');
-
-				});
-
-				
-
-
-
-
-				/*
-				
-
-				$(p).attr('d', d);
-			
-				$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-					
-				var path = project.importSvg($(p)[0]);
-				
-				path.__id = path_data._id;
-
-				path_pointers[path_data._id] = path;
-
-				projects[1].view.draw();
-				*/
-			}
-
-			if(active_path_pointers[d]){
-
-				//console.log('remove from drawing layer');
-
-				active_path_pointers[d].remove();
-
-				delete active_path_pointers[d];
-
-				projects[0].view.draw();
-			};
-
-			
+				self.render_path(path_data);
+			}			
 		},
 
 		changed: function(path_data, index, old_path_data){
 
-			
-			if(old_path_data.d != path_data.d){
-
-				//console.log('updated ' + path_data._id + ' : ' + path_data.d);
-
-				projects[1].activate();
-
-				var path = path_pointers[path_data._id];
-
-				if(path){
-
-					path.remove();	
-				}
-
-				path_pointers[path_data._id] = svg.path(svg_group, d, {fill: 'none', stroke: 'red', id: path_data._id});
-				
-				/*
-				var d = path_data.d;
-		
-				$(p).attr('d', d);
-			
-				$(p).attr('style', 'fill: none; stroke: red; stroke-width: 1');
-					
-				path = project.importSvg($(p)[0]);
-				
-				path.__id = path_data._id;
-
-				path_pointers[path_data._id] = path;
-				*/
-				//projects[1].view.draw();
-			}
-
+			self.render_path(path_data);
 		},
 
 		removed: function (path_data) {
 			
-			//console.log('removed ' + path_data.d);
-
-			var path = path_pointers[path_data._id];
-
-			if(path){
-				
-				path.remove();
-
-				//$('#'+path_data._id).remove();
-
-				delete path_pointers[path_data._id];
-			}
-
-			//projects[1].view.draw();
+			self.remove_path(path_data);
 			
 		}
 	});
@@ -780,8 +734,10 @@ Template.canvas.rendered = function () {
 	
 
 	self.select_tool.onMouseDown = function(event) {
-			
+		
 		event.preventDefault();
+
+		projects[0].activate();
 
 		var selected_item = self.selected_item;
 
@@ -866,6 +822,8 @@ Template.canvas.rendered = function () {
 					self.selected_item = false;
 
 					movePath = false;
+
+					$canvas.hide();
 				}
 
 			}else{
@@ -875,6 +833,8 @@ Template.canvas.rendered = function () {
 				self.selected_item = false;
 
 				movePath = false;
+
+				$canvas.hide();
 			}
 
 			
@@ -883,6 +843,7 @@ Template.canvas.rendered = function () {
 		self.update_selection_tools();
 	}
 	
+	/*
 	self.select_tool.onMouseMove = function(event) {
 		 
 		projects[1].activate();
@@ -903,10 +864,11 @@ Template.canvas.rendered = function () {
 
 		self.update_selection_tools();
 	}
+	*/
 
 	self.select_tool.onMouseDrag = function(event) {
 
-		projects[1].activate();
+		projects[0].activate();
 
 		event.preventDefault();
 
