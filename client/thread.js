@@ -153,8 +153,8 @@ Template.canvas.rendered = function () {
 	
 	//used to keep track of paths by id or by path shape:
 
-	var path_pointers = {}
-	var active_path_pointers = {}
+	self.path_pointers = {}
+	self.active_path_pointers = {}
 	
 	//manage selected items
 
@@ -472,26 +472,26 @@ Template.canvas.rendered = function () {
 
 		$('#' + id + '_hit').remove();
 
-		delete path_pointers[id];
+		delete self.path_pointers[id];
 
-		if(active_path_pointers[d]){
+		if(self.active_path_pointers[d]){
 
 			//console.log('remove from drawing layer');
 
-			active_path_pointers[d].remove();
+			self.active_path_pointers[d].remove();
 
-			delete active_path_pointers[d];
+			delete self.active_path_pointers[d];
 
 			//projects[0].view.draw();
 		};
 
-		if(active_path_pointers[id]){
+		if(self.active_path_pointers[id]){
 
 			//console.log('remove from drawing layer');
 
-			active_path_pointers[id].remove();
+			self.active_path_pointers[id].remove();
 
-			delete active_path_pointers[id];
+			delete self.active_path_pointers[id];
 
 			//projects[0].view.draw();
 		};
@@ -544,19 +544,41 @@ Template.canvas.rendered = function () {
 
 		self.selected_item = path;
 
-		active_path_pointers[id]= path;
+		self.active_path_pointers[id]= path;
+
+		
+		console.log('selected id: ' + id);
 
 		projects[0].view.draw();
 
 		$canvas.show();
 
+		//$canvas.show();
+
 		self.update_selection_tools();
 
+		console.log('here1');
 
-		path_pointers[id].remove();	
+		setTimeout(function(){
 
-		selected.remove();
+			console.log('here2');
 
+			var id = self.selected_item.__id;
+
+			$('#' + id).remove();
+
+			$('#' + id + '_hit').remove();
+
+			projects[0].view.draw();
+
+			$canvas.show();
+
+			console.log('here3');
+			
+		},10);	
+		
+		
+		return false;
 		//$(this).attr('stroke', 'transparent');
 
 	}
@@ -574,20 +596,27 @@ Template.canvas.rendered = function () {
 
 		var svg_path_hit = svg.path(svg_group, d, {fill: 'none', stroke: 'transparent', id: path_data._id + '_hit', strokeWidth: 5});
 		
-		path_pointers[path_data._id] = svg_path;
+		self.path_pointers[path_data._id] = svg_path;
 
 
 		$p_hit = $(svg_path_hit);
 
 		$p_hit.data('id', path_data._id);
 
-		$p_hit.on('mouseover', self.mouseover_path);
+		if('ontouchstart' in window){
 
-		$p_hit.on('mouseout', self.mouseout_path);
+			$p_hit.on('touchstart', self.click_path);
 
-		$p_hit.on('touchstart', self.click_path);
+		}else{
 
-		$p_hit.on('click', self.click_path);
+			$p_hit.on('click', self.click_path);
+
+			$p_hit.on('mouseover', self.mouseover_path);
+
+			$p_hit.on('mouseout', self.mouseout_path);
+		}			
+
+		//$p_hit.on('click', self.click_path);
 	}
 
 	//watch for path data changes
@@ -597,7 +626,7 @@ Template.canvas.rendered = function () {
 			
 			//console.log('added ' + path_data._id + ' : ' + path_data.d);
 
-			if(!path_pointers[path_data._id]){
+			if(!self.path_pointers[path_data._id]){
 
 				self.render_path(path_data);
 			}			
@@ -719,7 +748,7 @@ Template.canvas.rendered = function () {
 		
 		var d = $(p).attr('d');
 		
-		active_path_pointers[d] = path;
+		self.active_path_pointers[d] = path;
 
 		self.savePath(path,d);
 
