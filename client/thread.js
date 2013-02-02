@@ -151,6 +151,7 @@ Template.canvas.rendered = function () {
 	var svg_group = svg.group();
 	var $svg_group = $(svg_group);
 	
+	$svg_group.css('transform', 'translateZ(0)');
 	//used to keep track of paths by id or by path shape:
 
 	self.path_pointers = {}
@@ -350,7 +351,7 @@ Template.canvas.rendered = function () {
 		projects[0].activeLayer.setPosition(point);
 		//projects[1].activeLayer.setPosition(point);
 
-		$svg_group.attr('transform', 'translate(' + point.x + ',' + point.y + ')');
+		$svg_group.css('transform', 'translateZ(0) translate(' + point.x + 'px,' + point.y + 'px)');
 
 		self.update_selection_tools();
 
@@ -369,8 +370,9 @@ Template.canvas.rendered = function () {
 
 		var point = projects[0].activeLayer.position;
 
-		$svg_group.attr('transform', 'translate(' + point.x + ',' + point.y + ')');
-
+		//$svg_group.attr('transform', 'translate(' + point.x + ',' + point.y + ')');
+		$svg_group.css('transform', 'translateZ(0) translate(' + point.x + 'px,' + point.y + 'px)');
+		
 		self.update_selection_tools();
 
 		projects[0].view.draw();
