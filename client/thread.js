@@ -500,6 +500,8 @@ Template.canvas.rendered = function () {
 
 	self.mouseover_path = function(e){
 
+		e.preventDefault();
+
 		var selected = $(this);
 
 		var id = selected.data('id');
@@ -509,6 +511,8 @@ Template.canvas.rendered = function () {
 
 	self.mouseout_path = function(e){
 
+		e.preventDefault();
+
 		var selected = $(this);
 
 		var id = selected.data('id');
@@ -517,6 +521,8 @@ Template.canvas.rendered = function () {
 	}
 
 	self.click_path = function(e){
+
+		e.preventDefault();
 
 		var selected = $(this);
 
@@ -578,6 +584,8 @@ Template.canvas.rendered = function () {
 		$p_hit.on('mouseover', self.mouseover_path);
 
 		$p_hit.on('mouseout', self.mouseout_path);
+
+		$p_hit.on('touchstart', self.click_path);
 
 		$p_hit.on('click', self.click_path);
 	}
