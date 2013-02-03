@@ -16,6 +16,7 @@ body, html{
 	overflow: hidden;
 	font-size: 25px;
 	color: red;
+	padding:0;
 }
 
 #canvas2{
@@ -67,7 +68,7 @@ body, html{
 }
 
 #login{
-	display: inline-block;
+	display: none;
 	margin-top: 20px;
 	color: red;
 	line-height: 1em;

@@ -397,17 +397,35 @@ Template.canvas.rendered = function () {
 		$canvas2.attr('height', h1*2);
 		*/
 
+		
+
+		window.scrollTo(0,0);
+
+		var width = $(window).width();
+		var height = $(window).height();
+
+		$canvas.attr('width', width);
+		$canvas.attr('height', height);
+
+		$canvas2.attr('width', width);
+		$canvas2.attr('height', height);
+
 		var point = new Point(0,0);
 
 		projects[0].view.center = point;
 		projects[1].view.center = point;
 
-		var width = $canvas.width();
-		var height = $canvas.height();
+		console.log('window resize: ' + width + ' x ' + height);
 
 		var svg = $svg.svg('get');
 		svg.configure({viewBox: '-' + width/2 + ' -' + height/2 + ' ' + width + ' ' + height, width:width, height:height}, true);
 
+		var point = projects[0].activeLayer.position;
+
+		//$svg_group.attr('transform', 'translate(' + point.x + ',' + point.y + ')');
+		$svg_group.css('transform', 'translateZ(0) translate(' + point.x + 'px,' + point.y + 'px)');
+
+		projects[0].view.draw();
 		//projects[0].view.zoom = 2;
 		//projects[1].view.zoom = 2;
 	}
@@ -1027,7 +1045,12 @@ Template.canvas.rendered = function () {
     	}
     });	
 
+	window.onorientationchange = function(){
 
+		console.log('orientation change');
+
+		setTimeout(self.resize_view, 500);		
+	};
 
 
 	

@@ -24,7 +24,7 @@
 <template name="header">
 	<div id="header">
 		<div id="logo"></div>
-		<h1>thread /</h1>
+		<h1>thread</h1>
 		<div id="login">{{loginButtons}}</div>
 	</div>
 </template>
@@ -45,9 +45,11 @@
 </template>
 
 <template name="index">
-	{{> header}}
-	{{> canvas}}
-	{{> share}}
+	<div id="wrapper">
+		{{> header}}
+		{{> canvas}}
+		{{> share}}
+	</div>
 </template>
 
 <template name="canvas">
