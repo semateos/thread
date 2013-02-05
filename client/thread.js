@@ -92,7 +92,6 @@ Template.canvas.events({
 		self.selected_item = false;
 
 		var $canvas = $('#canvas');
-		var $canvas2 = $('#canvas2');
 		var $svg = $('#svg');
 
 		project.view.draw();
@@ -138,13 +137,10 @@ Template.canvas.rendered = function () {
 	//two paper canvases, one for drawing on, one for displaying drawn elements
 	//for performance reason separate canvases is better - also, I think helps with reactivity
 
-	paper.setup('canvas'); // drawing canvas
-	paper.setup('canvas2'); // data canvas
-
+	paper.setup('canvas'); // drawing layer
 	var $canvas = $('#canvas');
-	var $canvas2 = $('#canvas2');
 
-	var $svg = $('#svg');
+	var $svg = $('#svg'); // rendering layer
 	$svg.svg();
 	var svg = $svg.svg('get');
 	
@@ -407,13 +403,9 @@ Template.canvas.rendered = function () {
 		$canvas.attr('width', width);
 		$canvas.attr('height', height);
 
-		$canvas2.attr('width', width);
-		$canvas2.attr('height', height);
-
 		var point = new Point(0,0);
 
 		projects[0].view.center = point;
-		projects[1].view.center = point;
 
 		console.log('window resize: ' + width + ' x ' + height);
 
@@ -432,7 +424,7 @@ Template.canvas.rendered = function () {
 
 	self.resize_view();
 	
-	projects[0].view.onResize = projects[1].view.onResize = function(event) {
+	projects[0].view.onResize = function(event) {
     	
 		self.resize_view();
 	}
@@ -466,7 +458,6 @@ Template.canvas.rendered = function () {
 	//prepare a svg import path element
 	var path = new Path();
 	
-	projects[1].activate();
 
 	path.strokeColor = 'red';
 	path.add(new Point(0,0));
@@ -1029,19 +1020,15 @@ Template.canvas.rendered = function () {
     	if(event.which == 187){
 
     		projects[0].view.zoom += 0.5;
-    		projects[1].view.zoom += 0.5;
 
     		projects[0].view.center = new Point(0,0);
-			projects[1].view.center = new Point(0,0);
     	}
 
     	if(event.which == 189){
 
     		projects[0].view.zoom = 1;
-    		projects[1].view.zoom = 1;
 
     		projects[0].view.center = new Point(0,0);
-			projects[1].view.center = new Point(0,0);
     	}
     });	
 
