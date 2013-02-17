@@ -66,7 +66,6 @@ Template.header.events({
 		event.stopPropagation();
 
 		projects[0].view.zoom = 1;
-		projects[1].view.zoom = 1;
 
 		router.navigate('', {trigger: true});
 	}	
