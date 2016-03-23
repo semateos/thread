@@ -23,7 +23,7 @@ page.open('http://thread.meteor.com', function(status) {
                 where = {_id:{$gt: last_id}};
               }
 
-              var array = Paths.find(where, {limit: 5}).fetch();
+              var array = Paths.find(where, {limit: 100}).fetch();
 
               return array;
 
@@ -59,8 +59,6 @@ page.open('http://thread.meteor.com', function(status) {
           });
 
           console.log(paths);
-
-          window.setTimeout(function(){}, 500);
 
         }
 
